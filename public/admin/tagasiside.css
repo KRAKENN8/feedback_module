@@ -1,0 +1,36 @@
+body {
+    font: 16px/1.5 system-ui;
+    max-width: 900px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+    color: #1a1a1a;
+}
+
+.login-form {
+    max-width: 320px;
+    margin: 4rem auto;
+    font: 16px sans-serif;
+}
+
+.row {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    margin: .2rem 0;
+}
+
+.row span {
+    width: 9rem;
+}
+
+.row i {
+    background: #1a56a0;
+    height: 14px;
+    display: block;
+    min-width: 2px;
+    width: var(--percent, 0%);
+}
+
+li {
+    margin: .4rem 0;
+}

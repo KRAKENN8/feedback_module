@@ -41,14 +41,8 @@ if (($_SESSION['role'] ?? '') !== 'Peakasutaja') {
         http_response_code(403);
         exit('Forbidden');
     }
-    echo "<!doctype html>\n"
-        . "<meta charset=utf-8>\n"
-        . "<title>Admin</title>\n"
-        . "<form method=post style='max-width:320px;margin:4rem auto;font:16px sans-serif'>\n"
-        . "  <h1>Demo admin</h1>" . (isset($err) ? '<p role=alert>Invalid</p>' : '') . "\n"
-        . "  <input type=hidden name=csrf value='{$h($csrf)}'>\n"
-        . "  <label>Password <input type=password name=password required></label> <button>OK</button>\n"
-        . "</form>";
+    $loginError = isset($err);
+    require __DIR__ . '/tagasiside-login.view.php';
     exit;
 }
 
@@ -92,86 +86,10 @@ $bars = function (array $d, int $t) use ($h) {
     $o = '';
     foreach ($d as $k => $n) {
         $p = $t ? round($n * 100 / $t) : 0;
-        $o .= "<div class=row><span>{$h($k)}</span><i style='width:{$p}%'></i><b>$n ({$p}%)</b></div>";
+        $o .= "<div class=row><span>{$h($k)}</span><i data-percent='{$p}'></i><b>$n ({$p}%)</b></div>";
     }
     return $o ?: '<p>—</p>';
 };
 
 $comments = $q("SELECT created_at,lang,ease_rating,comment FROM limis_tagasiside WHERE $w AND comment IS NOT NULL ORDER BY id DESC LIMIT 100", $a)->fetchAll(PDO::FETCH_ASSOC);
-?>
-<!doctype html>
-<html lang=en>
-<head>
-    <meta charset=utf-8>
-    <meta name=viewport content="width=device-width,initial-scale=1">
-    <title>Tagasiside stats (demo)</title>
-    <style>
-        body {
-            font: 16px/1.5 system-ui;
-            max-width: 900px;
-            margin: 1rem auto;
-            padding: 0 1rem;
-            color: #1a1a1a;
-        }
-        .row {
-            display: flex;
-            gap: .5rem;
-            align-items: center;
-            margin: .2rem 0;
-        }
-        .row span {
-            width: 9rem;
-        }
-        .row i {
-            background: #1a56a0;
-            height: 14px;
-            display: block;
-            min-width: 2px;
-        }
-        li {
-            margin: .4rem 0;
-        }
-    </style>
-</head>
-<body>
-    <h1>LIMIS feedback — DEMO admin</h1>
-
-    <form method=get>
-        Period
-        <select name=days>
-            <?php foreach ([7, 30, 90, 180] as $d) echo "<option " . ($d == $days ? 'selected' : '') . ">$d</option>"; ?>
-        </select>
-        Lang
-        <select name=lang>
-            <option value="">all</option>
-            <?php foreach (['et', 'ru'] as $l) echo "<option " . ($l === $lang ? 'selected' : '') . ">$l</option>"; ?>
-        </select>
-        <button>Apply</button>
-        <a href="?csv=1&days=<?= $days ?>&lang=<?= $h($lang) ?>">CSV</a>
-    </form>
-
-    <p>Total: <b><?= $tot ?></b> · Avg ease: <b><?= $h($avg ?? '—') ?></b></p>
-
-    <h2>Result</h2>
-    <?= $bars($dist('completed'), $tot) ?>
-
-    <h2>Ratings 1–5</h2>
-    <?= $bars($dist('ease_rating'), $tot) ?>
-
-    <h2>Difficulties</h2>
-    <?= $bars($dist('difficulty'), $tot) ?>
-
-    <h2>Purpose</h2>
-    <?= $bars($dist('purpose'), $tot) ?>
-
-    <h2>Comments</h2>
-    <ul>
-        <?php foreach ($comments as $c) echo '<li>' . $h($c['created_at']) . ' [' . $h($c['lang']) . '] ' . (int)$c['ease_rating'] . '/5 — ' . $h($c['comment']) . '</li>'; ?>
-    </ul>
-
-    <form method=post>
-        <input type=hidden name=csrf value="<?= $h($csrf) ?>">
-        <button name=logout value=1>Logout</button>
-    </form>
-</body>
-</html>
+require __DIR__ . '/tagasiside-dashboard.view.php';
