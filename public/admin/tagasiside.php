@@ -86,9 +86,11 @@ $bars = function (array $d, int $t) use ($h) {
     $o = '';
     foreach ($d as $k => $n) {
         $p = $t ? round($n * 100 / $t) : 0;
-        $o .= "<div class=row><span>{$h($k)}</span><i data-percent='{$p}'></i><b>$n ({$p}%)</b></div>";
+        $o .= '<div class="bar-row"><span class="bar-label">' . $h($k) . '</span>'
+            . '<span class="bar-track"><i data-percent="' . $p . '" aria-hidden="true"></i></span>'
+            . '<b class="bar-value">' . (int)$n . ' (' . $p . '%)</b></div>';
     }
-    return $o ?: '<p>—</p>';
+    return $o ?: '<p class="empty-state">No responses for this period.</p>';
 };
 
 $comments = $q("SELECT created_at,lang,ease_rating,comment FROM limis_tagasiside WHERE $w AND comment IS NOT NULL ORDER BY id DESC LIMIT 100", $a)->fetchAll(PDO::FETCH_ASSOC);
