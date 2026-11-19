@@ -6,6 +6,8 @@ $pages = ['home', 'eservices', 'procurement', 'property', 'apply'];
 $p = in_array($_GET['p'] ?? '', $pages, true) ? $_GET['p'] : 'home';
 $crit = $p === 'apply';
 $pg = $crit ? 'eservices' : $p;
+$inviteAfterSeconds = 45;
+$inviteMinPages = 2;
 ?>
 <!doctype html>
 <html lang="<?= $L ?>">
@@ -38,6 +40,6 @@ $pg = $crit ? 'eservices' : $p;
         <p>Demo content.</p>
     <?php endif; ?>
 
-    <script src="/tagasiside/widget.js" data-lang="<?= $L ?>" data-page="<?= $pg ?>" data-critical="<?= $crit ? 1 : 0 ?>"></script>
+    <script src="/tagasiside/widget.js?v=<?= filemtime(__DIR__ . '/tagasiside/widget.js') ?>" data-lang="<?= $L ?>" data-page="<?= $pg ?>" data-critical="<?= $crit ? 1 : 0 ?>" data-invite-after-seconds="<?= $inviteAfterSeconds ?>" data-invite-min-pages="<?= $inviteMinPages ?>"></script>
 </body>
 </html>

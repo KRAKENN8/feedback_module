@@ -4,6 +4,13 @@
     const ru = D.lang === 'ru';
     const t = a => a[ru ? 1 : 0];
     const base = S.src.replace(/widget\.js.*$/, '');
+    const intSetting = (value, fallback, min) => {
+        if (typeof value !== 'string' || value.trim() === '') return fallback;
+        const n = Number(value);
+        return Number.isSafeInteger(n) && n >= min ? n : fallback;
+    };
+    const inviteAfterMs = intSetting(D.inviteAfterSeconds, 45, 0) * 1000;
+    const inviteMinPages = intSetting(D.inviteMinPages, 2, 1);
 
     const Q = [
         {
@@ -290,17 +297,18 @@
         m.querySelector('input').focus();
     }
 
-    // автоприглашение: >=2 страницы, >=45 с активности, не подавлено, нет важной операции
     const pages = new Set(JSON.parse(ls.get(P) || '[]'));
-    pages.add(D.page || location.pathname);
+    const page = new URL(location.href).searchParams.get('p') || D.page || location.pathname;
+    pages.add(page);
     ls.set(P, JSON.stringify([...pages]));
 
+    // Автоприглашение: две разные страницы и 45 секунд активности, если оно не подавлено и нет важной операции.
     setInterval(() => {
         if (document.hidden) return;
         const ms = (+ls.get(M) || 0) + 1000;
         ls.set(M, String(ms));
 
-        if (!inv && !open && !crit && !suppressed() && pages.size >= 2 && ms >= 45000) {
+        if (!inv && !open && !crit && !suppressed() && pages.size >= inviteMinPages && ms >= inviteAfterMs) {
             inv = el('div', { className: 'lf-inv' });
             inv.setAttribute('role', 'region');
             inv.setAttribute('aria-label', t(X.h));
