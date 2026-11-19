@@ -262,10 +262,12 @@
                     m.querySelector('button').focus();
                 } else {
                     er.textContent = t(r.status === 429 ? X.rate : X.er);
-                    if (r.status !== 409 && r.status !== 429) {
-                        fetch(base + 'token.php', { cache: 'no-store' })
-                            .then(r => r.json())
-                            .then(j => token = j.token);
+                    if (r.status !== 409) {
+                        if (r.status !== 429) {
+                            fetch(base + 'token.php', { cache: 'no-store' })
+                                .then(r => r.json())
+                                .then(j => token = j.token);
+                        }
                         sb.disabled = false;
                     }
                 }

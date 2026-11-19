@@ -82,31 +82,57 @@ if ($pg === '') {
 
 try {
     $db = db();
-    $ins = $db->prepare('INSERT INTO limis_tagasiside_nonce(nonce,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 2 HOUR))');
-
-    // повторная отправка
-    try {
-        $ins->execute([$nonce]);
-    } catch (PDOException $e) {
-        out(409, ['error' => 'duplicate']);
-    }
-
-    // IP не хранится в открытом виде
     $rk = 'r:' . hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? '', cfg()['secret']);
-
-    $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
-    $c->execute([$rk]);
-    if ((int)$c->fetchColumn() >= 3) {
-        out(429, ['error' => 'rate']);
+    $lockName = 'lf:' . substr($rk, 2, 61);
+    $lock = $db->prepare('SELECT GET_LOCK(?, 5)');
+    $lock->execute([$lockName]);
+    if ((int)$lock->fetchColumn() !== 1) {
+        out(503, ['error' => 'busy']);
     }
 
-    $db->prepare('INSERT INTO limis_tagasiside_guard(k,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 1 HOUR))')
-        ->execute([$rk]);
+    $response = null;
+    try {
+        $db->beginTransaction();
 
-    $db->prepare('INSERT INTO limis_tagasiside(lang,purpose,completed,ease_rating,difficulty,comment,page_group) VALUES(?,?,?,?,?,?,?)')
-        ->execute([$lang, $purpose, $completed, $rating, $diff, $com, $pg]);
+        try {
+            $db->prepare('INSERT INTO limis_tagasiside_nonce(nonce,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 2 HOUR))')
+                ->execute([$nonce]);
+        } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) !== 1062) {
+                throw $e;
+            }
+            $db->rollBack();
+            $response = [409, ['error' => 'duplicate']];
+        }
 
-    out(200, ['ok' => true]);
+        if ($response === null) {
+            $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
+            $c->execute([$rk]);
+            if ((int)$c->fetchColumn() >= 3) {
+                $db->rollBack();
+                $response = [429, ['error' => 'rate']];
+            } else {
+                $db->prepare('INSERT INTO limis_tagasiside_guard(k,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 1 HOUR))')
+                    ->execute([$rk]);
+
+                $db->prepare('INSERT INTO limis_tagasiside(lang,purpose,completed,ease_rating,difficulty,comment,page_group) VALUES(?,?,?,?,?,?,?)')
+                    ->execute([$lang, $purpose, $completed, $rating, $diff, $com, $pg]);
+
+                $db->commit();
+                $response = [200, ['ok' => true]];
+            }
+        }
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        throw $e;
+    } finally {
+        $release = $db->prepare('SELECT RELEASE_LOCK(?)');
+        $release->execute([$lockName]);
+    }
+
+    out($response[0], $response[1]);
 } catch (Throwable $e) {
     // без деталей клиенту
     error_log('tagasiside: ' . get_class($e));
