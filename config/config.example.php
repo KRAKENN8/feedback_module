@@ -14,4 +14,7 @@ return [
     'redis_port'    => 6379,
     'redis_pass'    => null,
     'redis_timeout' => 2.0,
+
+    // Доверенные обратные прокси (Reverse Proxy) для корректного client IP
+    'trusted_proxies' => ['127.0.0.1', '::1'],
 ];

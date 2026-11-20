@@ -27,13 +27,16 @@
 | `public/admin/tagasiside-login.view.php` | Шаблон входа в административную часть. |
 | `public/admin/tagasiside-dashboard.view.php` | Шаблон статистики и комментариев. |
 | `public/admin/tagasiside.css`, `public/admin/tagasiside.js` | Стили административных страниц и небольшие UI-действия. |
-| `src/bootstrap.php` | Конфигурация, соединение с MariaDB, клиент Redis, HMAC-токены и разрешённые значения полей. |
+| `src/bootstrap.php` | Конфигурация, соединение с MariaDB, клиент Redis, доверенные прокси, HMAC-токены и разрешённые значения полей. |
 | `src/RedisClient.php` | Легковесный сокетный RESP-клиент Redis для атомарного rate limiting без сторонних зависимостей. |
+| `src/FeedbackValidator.php` | Валидатор и нормализатор полей формы отзыва. |
+| `src/i18n/admin.php` | Локализационные словари административной панели (ET / RU). |
 | `config/config.example.php` | Пример конфигурации. Рабочий `config/config.php` создаётся отдельно и не должен быть доступен через веб. |
-| `migrations/001_install.sql` | Создание таблиц ответов, лимитов и nonce. |
+| `migrations/001_install.sql` | Создание таблиц ответов, лимитов и nonce с индексами. |
 | `migrations/001_rollback.sql` | Удаление этих таблиц при полном откате модуля. |
 | `bin/purge.php` | Удаление устаревших данных. Запускается из CLI планировщиком. |
 | `bin/seed.php` | Заполнение базы синтетическими строками для разработки; не запускайте на рабочей базе. |
+| `bin/test.ps1` | Скрипт автоматического запуска полного набора тестов в один клик под Windows. |
 | `public/index.php`, `public/site.css` | Локальная оболочка для проверки внешнего вида и порогов приглашения. При установке на существующий сайт её заменяет сам сайт. |
 | `tests/api.test.mjs`, `tests/widget.test.mjs`, `tests/admin.test.mjs`, `tests/redis.test.mjs` | Автоматизированные API-проверки, тесты защиты панели администратора, проверки Redis и unit-тесты логики/A11y виджета на встроенном runner Node.js. |
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/RedisClient.php';
+require_once __DIR__ . '/FeedbackValidator.php';
 
 function cfg(): array
 {
@@ -28,6 +29,28 @@ function redis(): ?RedisClient
     $timeout = (float)($c['redis_timeout'] ?? 2.0);
 
     return $r = new RedisClient($host, $port, $timeout, $auth);
+}
+
+function client_ip(): string
+{
+    $remote = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    $trusted = cfg()['trusted_proxies'] ?? [];
+    if (in_array($remote, $trusted, true)) {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $first = trim($parts[0]);
+            if (filter_var($first, FILTER_VALIDATE_IP)) {
+                return $first;
+            }
+        }
+        if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $real = trim((string)$_SERVER['HTTP_X_REAL_IP']);
+            if (filter_var($real, FILTER_VALIDATE_IP)) {
+                return $real;
+            }
+        }
+    }
+    return $remote;
 }
 
 function db(): PDO

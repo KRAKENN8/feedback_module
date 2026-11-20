@@ -9,7 +9,8 @@ CREATE TABLE limis_tagasiside (
     comment VARCHAR(500) NULL,
     page_group ENUM('home','eservices','procurement','property','account','appointment') NULL,
     CONSTRAINT chk_rating CHECK (ease_rating BETWEEN 1 AND 5),
-    INDEX idx_created (created_at)
+    INDEX idx_created (created_at),
+    INDEX idx_created_lang (created_at, lang)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE limis_tagasiside_guard (

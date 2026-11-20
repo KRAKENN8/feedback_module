@@ -34,53 +34,21 @@ if (!$nonce) {
     out(403, ['error' => 'csrf']);
 }
 
-$lang = $in['lang'] ?? null;
-$purpose = $in['purpose'] ?? null;
-$completed = $in['completed'] ?? null;
-$rating = $in['ease_rating'] ?? null;
-$diff = $in['difficulty'] ?? null;
-$pg = $in['page_group'] ?? null;
-$com = $in['comment'] ?? null;
-
-if (
-    !in_array($lang, ENUMS['lang'], true)
-    || !in_array($purpose, ENUMS['purpose'], true)
-    || !in_array($completed, ENUMS['completed'], true)
-    || !is_int($rating)
-    || $rating < 1
-    || $rating > 5
-) {
-    out(422, ['error' => 'validation']);
+$validation = FeedbackValidator::validate($in);
+if (!$validation['ok']) {
+    out(422, ['error' => $validation['error']]);
 }
 
-if ($diff !== null && $diff !== '' && !in_array($diff, ENUMS['difficulty'], true)) {
-    out(422, ['error' => 'validation']);
-}
+$data = $validation['data'];
+$lang = $data['lang'];
+$purpose = $data['purpose'];
+$completed = $data['completed'];
+$rating = $data['ease_rating'];
+$diff = $data['difficulty'];
+$pg = $data['page_group'];
+$com = $data['comment'];
 
-if ($pg !== null && $pg !== '' && !in_array($pg, ENUMS['page_group'], true)) {
-    out(422, ['error' => 'validation']);
-}
-
-if ($com !== null && !is_string($com)) {
-    out(422, ['error' => 'validation']);
-}
-
-$com = $com === null ? null : trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $com));
-if ($com !== null && mb_strlen($com) > 500) {
-    out(422, ['error' => 'too_long']);
-}
-
-if ($com === '') {
-    $com = null;
-}
-if ($diff === '') {
-    $diff = null;
-}
-if ($pg === '') {
-    $pg = null;
-}
-
-$rk = 'r:' . hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? '', cfg()['secret']);
+$rk = 'r:' . hash_hmac('sha256', client_ip(), cfg()['secret']);
 $redisEnabled = !empty(cfg()['redis_enabled']);
 $redisKey = 'lf:rate:v2:' . $rk;
 $redisReservation = null;

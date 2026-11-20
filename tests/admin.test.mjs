@@ -51,7 +51,7 @@ test('unauthenticated access to admin dashboard shows the login form and hides m
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type') || '', /text\/html/i);
 
-    const html = await response.json ? '' : await response.text();
+    const html = await response.text();
     assert.match(html, /<form[^>]+method=["']post["']/i);
     assert.match(html, /name=["']password["']/i);
     assert.match(html, /name=["']csrf["']/i);

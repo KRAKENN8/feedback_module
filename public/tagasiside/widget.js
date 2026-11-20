@@ -77,7 +77,8 @@
         ok: ['Täname tagasiside eest!', 'Спасибо за ваш отзыв!'],
         req: ['Palun vastake kohustuslikele küsimustele.', 'Пожалуйста, ответьте на обязательные вопросы.'],
         er: ['Saatmine ebaõnnestus, proovige hiljem.', 'Не удалось отправить, попробуйте позже.'],
-        rate: ['Liiga palju saatmisi, proovige hiljem.', 'Слишком много отправок, попробуйте позже.']
+        rate: ['Liiga palju saatmisi, proovige hiljem.', 'Слишком много отправок, попробуйте позже.'],
+        dup: ['Vastus on juba saadetud või seanss aegunud, proovige uuesti.', 'Отзыв уже отправлен или сессия устарела, попробуйте ещё раз.']
     };
 
     const K = 'lf_until';
@@ -133,7 +134,8 @@
         document.querySelector('.lf-ov')?.remove();
         open = false;
         sup();
-        (last || btn).focus();
+        const target = (last && document.body && document.body.contains(last)) ? last : btn;
+        target?.focus();
     }
 
     function show() {
@@ -206,6 +208,7 @@
 
         const er = el('p', { className: 'lf-err' });
         er.setAttribute('role', 'alert');
+        er.setAttribute('aria-live', 'polite');
         m.append(er);
 
         const sb = el('button', {
@@ -272,13 +275,21 @@
                     );
                     ok.focus();
                 } else {
-                    er.textContent = t(r.status === 429 ? X.rate : X.er);
-                    if (r.status !== 409) {
-                        if (r.status !== 429) {
-                            fetch(base + 'token.php', { cache: 'no-store' })
-                                .then(r => r.json())
-                                .then(j => token = j.token);
-                        }
+                    if (r.status === 429) {
+                        er.textContent = t(X.rate);
+                    } else if (r.status === 409) {
+                        er.textContent = t(X.dup);
+                        fetch(base + 'token.php', { cache: 'no-store' })
+                            .then(r => r.json())
+                            .then(j => token = j.token)
+                            .catch(() => {});
+                        sb.disabled = false;
+                    } else {
+                        er.textContent = t(X.er);
+                        fetch(base + 'token.php', { cache: 'no-store' })
+                            .then(r => r.json())
+                            .then(j => token = j.token)
+                            .catch(() => {});
                         sb.disabled = false;
                     }
                 }
