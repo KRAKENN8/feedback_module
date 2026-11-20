@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
 import test from 'node:test';
 
 const baseUrl = (process.env.LIMIS_TEST_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
@@ -111,4 +112,20 @@ test('login attempt with invalid password displays an error notification', async
     const html = await response.text();
     assert.match(html, /Неверный пароль|Parool ei sobinud/i);
     assert.doesNotMatch(html, /class=["']summary-grid["']/i);
+});
+
+test('AdminAuth class recognizes Peakasutaja case-insensitively and rejects other roles', () => {
+    const phpBin = process.env.PHP_BIN || 'E:\\workspace\\devtools\\db\\xampp\\php8.5\\php.exe';
+    const phpCode = `$roles=['Peakasutaja'=>true,'peakasutaja'=>true,'PEAKASUTAJA'=>true,'peakasutaja:100'=>true,'kasutaja'=>false,'teenistuja'=>false,'kodanik_er:1728'=>false,''=>false];foreach($roles as $r=>$exp){$_SESSION['active_role']=$r;assert(AdminAuth::isPeakasutaja()===$exp);}unset($_SESSION['active_role']);$_SESSION['role']='peakasutaja';assert(AdminAuth::isPeakasutaja()===true);echo 'OK';`;
+    const result = execSync(`"${phpBin}" -r "require 'src/bootstrap.php'; ${phpCode}"`, { encoding: 'utf8' });
+    assert.match(result, /OK/);
+});
+
+test('access to tagasiside.php with active role kasutaja renders 403 Forbidden screen', () => {
+    const phpBin = process.env.PHP_BIN || 'E:\\workspace\\devtools\\db\\xampp\\php8.5\\php.exe';
+    const phpCode = `session_id('testsession123');session_start();$_SESSION['active_role']='kasutaja';session_write_close();$_COOKIE['PHPSESSID']='testsession123';$_GET['ui']='ru';include 'public/admin/tagasiside.php';`;
+    const result = execSync(`"${phpBin}" -r "${phpCode}"`, { encoding: 'utf8' });
+    assert.match(result, /Требуется роль Главного пользователя/);
+    assert.match(result, /kasutaja/);
+    assert.match(result, /Обратитесь к главному пользователю/);
 });

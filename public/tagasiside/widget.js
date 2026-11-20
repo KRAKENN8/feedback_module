@@ -1,9 +1,52 @@
 (() => {
     const S = document.currentScript;
-    const D = S.dataset;
-    const ru = D.lang === 'ru';
+    const D = S ? S.dataset : {};
+    const base = S && S.src ? S.src.replace(/widget\.js.*$/, '') : '';
+
+    const ls = {
+        get: k => {
+            try {
+                return localStorage.getItem(k);
+            } catch (e) {
+                return null;
+            }
+        },
+        set: (k, v) => {
+            try {
+                localStorage.setItem(k, v);
+            } catch (e) {}
+        }
+    };
+
+    const resolveLang = () => {
+        // 1. URL search param ?lang=ru or ?lang=et (matches LIMIS: https://limis.narva.ee/start/main.php?lang=ru)
+        try {
+            const urlLang = new URL(location.href).searchParams.get('lang');
+            const cleanUrlLang = urlLang ? urlLang.trim().toLowerCase() : '';
+            if (cleanUrlLang === 'ru' || cleanUrlLang === 'et') return cleanUrlLang;
+        } catch (e) {}
+
+        // 2. Explicit data-lang on script tag if specified ('ru' or 'et')
+        const dataLang = (D && D.lang ? D.lang : '').trim().toLowerCase();
+        if (dataLang === 'ru' || dataLang === 'et') return dataLang;
+
+        // 3. LIMIS localStorage field 'language' ('ru' or 'et')
+        const storedLang = (ls.get('language') || '').trim().toLowerCase();
+        if (storedLang === 'ru' || storedLang === 'et') return storedLang;
+
+        // 4. HTML document language (<html lang="ru">)
+        const docLang = ((document.documentElement && document.documentElement.lang) || '').trim().toLowerCase();
+        if (docLang.startsWith('ru')) return 'ru';
+
+        return 'et';
+    };
+
+    let currentLang = resolveLang();
+    // Synchronize to LIMIS localStorage 'language' key
+    ls.set('language', currentLang);
+
+    let ru = currentLang === 'ru';
     const t = a => a[ru ? 1 : 0];
-    const base = S.src.replace(/widget\.js.*$/, '');
     const intSetting = (value, fallback, min) => {
         if (typeof value !== 'string' || value.trim() === '') return fallback;
         const n = Number(value);
@@ -84,21 +127,6 @@
     const K = 'lf_until';
     const P = 'lf_pages';
     const M = 'lf_ms';
-
-    const ls = {
-        get: k => {
-            try {
-                return localStorage.getItem(k);
-            } catch (e) {
-                return null;
-            }
-        },
-        set: (k, v) => {
-            try {
-                localStorage.setItem(k, v);
-            } catch (e) {}
-        }
-    };
 
     const sup = () => ls.set(K, String(Date.now() + 30 * 864e5));
     const suppressed = () => +ls.get(K) > Date.now();
@@ -243,7 +271,7 @@
 
             const body = {
                 token,
-                lang: D.lang === 'ru' ? 'ru' : 'et',
+                lang: currentLang,
                 purpose: v('purpose'),
                 completed: v('completed'),
                 ease_rating: +v('ease_rating'),
@@ -383,6 +411,24 @@
             hideInv();
         }
     };
-    window.LimisFeedback = { setCritical: set, setPage: addPage };
+    const setLang = l => {
+        const normalized = String(l || '').trim().toLowerCase();
+        if (normalized === 'ru' || normalized === 'et') {
+            currentLang = normalized;
+            ru = currentLang === 'ru';
+            ls.set('language', currentLang);
+            if (btn) {
+                btn.textContent = t(X.btn);
+            }
+        }
+    };
+    window.LimisFeedback = {
+        setCritical: set,
+        setPage: addPage,
+        setLanguage: setLang,
+        getLanguage: () => currentLang
+    };
     addEventListener('limis-feedback:critical', e => set(e.detail && e.detail.active));
+    addEventListener('limis-feedback:lang', e => setLang(e.detail && (e.detail.lang || e.detail.language)));
+    addEventListener('limis-feedback:language', e => setLang(e.detail && (e.detail.lang || e.detail.language)));
 })();

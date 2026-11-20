@@ -8,6 +8,11 @@ return [
     'secret'     => 'замените-на-случайные-64-символа', // HMAC для токенов и ключей лимита
     'admin_hash' => '', // php -r "echo password_hash('пароль', PASSWORD_DEFAULT);"
 
+    // Режим аутентификации панели администратора:
+    // 'standalone' - локальный режим разработки с отдельным паролем (admin_hash)
+    // 'limis'      - штатный режим LIMIS: проверяет роль $_SESSION['active_role'] или $_SESSION['role'] === 'peakasutaja'
+    'auth_mode' => 'standalone',
+
     // Redis (Rate Limiting по ТЗ № LIMIS-FEEDBACK-01)
     'redis_enabled' => true,
     'redis_host'    => '127.0.0.1',

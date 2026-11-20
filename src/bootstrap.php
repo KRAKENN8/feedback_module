@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/RedisClient.php';
 require_once __DIR__ . '/FeedbackValidator.php';
+require_once __DIR__ . '/AdminAuth.php';
 
 function cfg(): array
 {

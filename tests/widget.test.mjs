@@ -99,8 +99,10 @@ class FakeElement {
 
 function loadWidget({
     pageKey,
+    lang,
     href = 'https://limis.example/services',
     storedPages,
+    storedLanguage,
     storageAvailable = true,
     hidden = false,
     critical = '0',
@@ -113,6 +115,7 @@ function loadWidget({
     if (storedPages !== undefined) values.set('lf_pages', storedPages);
     if (storedMs !== undefined) values.set('lf_ms', String(storedMs));
     if (storedUntil !== undefined) values.set('lf_until', String(storedUntil));
+    if (storedLanguage !== undefined) values.set('language', String(storedLanguage));
 
     const localStorage = {
         getItem(key) {
@@ -144,12 +147,14 @@ function loadWidget({
             dataset: {
                 ...(pageKey === undefined ? {} : { pageKey }),
                 critical,
+                ...(lang === undefined ? {} : { lang }),
                 ...(inviteAfterSeconds === undefined ? {} : { inviteAfterSeconds: String(inviteAfterSeconds) }),
                 ...(inviteMinPages === undefined ? {} : { inviteMinPages: String(inviteMinPages) })
             },
             src: 'https://limis.example/tagasiside/widget.js'
         },
         body: null,
+        documentElement: null,
         createElement: (tag, attrs) => {
             const el = new FakeElement(tag, attrs);
             el.ownerDocument = doc;
@@ -160,6 +165,8 @@ function loadWidget({
     };
     doc.body = new FakeElement('body');
     doc.body.ownerDocument = doc;
+    doc.documentElement = new FakeElement('html', { lang: 'et' });
+    doc.documentElement.ownerDocument = doc;
 
     const window = {};
 
@@ -378,4 +385,53 @@ test('tab key navigation is trapped within modal dialog controls', () => {
     dialog.onkeydown({ key: 'Tab', shiftKey: false, preventDefault });
     assert.equal(defaultPrevented, true);
     assert.equal(widget.document.activeElement, firstControl);
+});
+
+test('widget resolves language from URL ?lang=ru and syncs to localStorage language key', () => {
+    const widget = loadWidget({
+        href: 'https://limis.narva.ee/start/main.php?lang=ru'
+    });
+    const triggerBtn = widget.document.querySelector('.lf-btn');
+    assert.equal(triggerBtn.textContent, 'Оценить LIMIS');
+    assert.equal(widget.storage.get('language'), 'ru');
+    assert.equal(widget.api.getLanguage(), 'ru');
+});
+
+test('widget resolves language from localStorage language item when URL has no lang param', () => {
+    const widget = loadWidget({
+        href: 'https://limis.narva.ee/start/main.php',
+        storedLanguage: 'ru'
+    });
+    const triggerBtn = widget.document.querySelector('.lf-btn');
+    assert.equal(triggerBtn.textContent, 'Оценить LIMIS');
+    assert.equal(widget.api.getLanguage(), 'ru');
+});
+
+test('widget prioritizes URL parameter ?lang over localStorage language', () => {
+    const widget = loadWidget({
+        href: 'https://limis.narva.ee/start/main.php?lang=et',
+        storedLanguage: 'ru'
+    });
+    const triggerBtn = widget.document.querySelector('.lf-btn');
+    assert.equal(triggerBtn.textContent, 'Hinda LIMIS-t');
+    assert.equal(widget.storage.get('language'), 'et');
+    assert.equal(widget.api.getLanguage(), 'et');
+});
+
+test('widget LimisFeedback.setLanguage dynamically changes language and syncs to localStorage', () => {
+    const widget = loadWidget({
+        href: 'https://limis.narva.ee/start/main.php?lang=et'
+    });
+    const triggerBtn = widget.document.querySelector('.lf-btn');
+    assert.equal(triggerBtn.textContent, 'Hinda LIMIS-t');
+
+    widget.api.setLanguage('ru');
+    assert.equal(triggerBtn.textContent, 'Оценить LIMIS');
+    assert.equal(widget.storage.get('language'), 'ru');
+    assert.equal(widget.api.getLanguage(), 'ru');
+
+    widget.emit('limis-feedback:lang', { lang: 'et' });
+    assert.equal(triggerBtn.textContent, 'Hinda LIMIS-t');
+    assert.equal(widget.storage.get('language'), 'et');
+    assert.equal(widget.api.getLanguage(), 'et');
 });

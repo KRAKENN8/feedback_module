@@ -101,6 +101,25 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
     <title><?= $h($text['headings'][$page]) ?> · LIMIS</title>
     <link rel="stylesheet" href="/site.css">
     <link rel="stylesheet" href="/tagasiside/widget.css">
+    <script>
+        (function () {
+            try {
+                var params = new URLSearchParams(window.location.search);
+                var current = <?= json_encode($lang) ?>;
+                if (params.has('lang')) {
+                    localStorage.setItem('language', current);
+                } else {
+                    var stored = localStorage.getItem('language');
+                    if ((stored === 'ru' || stored === 'et') && stored !== current) {
+                        params.set('lang', stored);
+                        window.location.replace(window.location.pathname + '?' + params.toString());
+                    } else {
+                        localStorage.setItem('language', current);
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body class="service-site">
     <header class="site-header">
@@ -110,8 +129,8 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
                 <span class="site-brand-location"><?= $h($text['brand']) ?></span>
             </a>
             <nav class="site-language" aria-label="<?= $h($text['language']) ?>">
-                <a href="?p=<?= $h($page) ?>&amp;lang=et" lang="et" <?= $lang === 'et' ? 'aria-current="page"' : '' ?>>ET</a>
-                <a href="?p=<?= $h($page) ?>&amp;lang=ru" lang="ru" <?= $lang === 'ru' ? 'aria-current="page"' : '' ?>>RU</a>
+                <a href="?p=<?= $h($page) ?>&amp;lang=et" lang="et" <?= $lang === 'et' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','et');}catch(e){}">ET</a>
+                <a href="?p=<?= $h($page) ?>&amp;lang=ru" lang="ru" <?= $lang === 'ru' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','ru');}catch(e){}">RU</a>
             </nav>
         </div>
     </header>

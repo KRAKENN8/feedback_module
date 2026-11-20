@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../src/bootstrap.php';
 
-session_set_cookie_params([
-    'httponly' => true,
-    'samesite' => 'Strict',
-]);
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    session_start();
+}
 
 $ui = $_GET['ui'] ?? ($_SESSION['ui'] ?? 'et');
 $ui = in_array($ui, ['et', 'ru'], true) ? $ui : 'et';
@@ -22,20 +24,22 @@ $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
 
 if (isset($_POST['logout']) && hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
     $logoutUi = $ui;
+    AdminAuth::logout();
     session_destroy();
     header('Location: tagasiside.php?ui=' . $logoutUi);
     exit;
 }
 
-// DEMO-авторизация, НЕ LIMIS
-if (isset($_POST['password'])) {
+// DEMO-авторизация (в режиме standalone)
+if (AdminAuth::getAuthMode() === 'standalone' && isset($_POST['password'])) {
     if (
         hash_equals($csrf, (string)($_POST['csrf'] ?? ''))
         && cfg()['admin_hash']
         && password_verify((string)$_POST['password'], cfg()['admin_hash'])
     ) {
         session_regenerate_id(true);
-        $_SESSION['role'] = 'Peakasutaja';
+        $role = (string)($_POST['simulate_role'] ?? AdminAuth::ROLE_PEAKASUTAJA);
+        AdminAuth::setSessionRole($role);
         $_SESSION['csrf'] = bin2hex(random_bytes(16));
         header('Location: tagasiside.php');
         exit;
@@ -43,12 +47,22 @@ if (isset($_POST['password'])) {
     $err = true;
 }
 
-// проверка прав на сервере в этом же endpoint
-if (($_SESSION['role'] ?? '') !== 'Peakasutaja') {
+// Проверка прав на сервере: доступ разрешён исключительно роли Peakasutaja
+if (!AdminAuth::isPeakasutaja()) {
     if (isset($_GET['csv'])) {
         http_response_code(403);
         exit('Forbidden');
     }
+
+    // Если пользователь уже авторизован под другой ролью (напр. kasutaja/teenistuja или kodanik_er)
+    // или если включён штатный режим LIMIS, отдаём 403 Forbidden с пояснением
+    if (AdminAuth::isAuthenticated() || AdminAuth::getAuthMode() === 'limis') {
+        http_response_code(403);
+        $activeRole = AdminAuth::getActiveRole() ?? 'puudub';
+        require __DIR__ . '/tagasiside-forbidden.view.php';
+        exit;
+    }
+
     $loginError = isset($err);
     require __DIR__ . '/tagasiside-login.view.php';
     exit;
