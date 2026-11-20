@@ -1,0 +1,12 @@
+# Запрет листинга директорий при отсутствии index-файла
+Options -Indexes
+
+# Запрет доступа к скрытым файлам
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Запрет отдачи резервных и временных файлов
+<FilesMatch "\.(bak|config|sql|fla|psd|ini|log|sh|swp|dist|env|old|orig|md)$">
+    Require all denied
+</FilesMatch>

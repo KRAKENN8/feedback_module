@@ -121,7 +121,8 @@
         req: ['Palun vastake kohustuslikele küsimustele.', 'Пожалуйста, ответьте на обязательные вопросы.'],
         er: ['Saatmine ebaõnnestus, proovige hiljem.', 'Не удалось отправить, попробуйте позже.'],
         rate: ['Liiga palju saatmisi, proovige hiljem.', 'Слишком много отправок, попробуйте позже.'],
-        dup: ['Vastus on juba saadetud või seanss aegunud, proovige uuesti.', 'Отзыв уже отправлен или сессия устарела, попробуйте ещё раз.']
+        dup: ['Vastus on juba saadetud või seanss aegunud, proovige uuesti.', 'Отзыв уже отправлен или сессия устарела, попробуйте ещё раз.'],
+        priv: ['Andmekaitsetingimused', 'Условия защиты данных']
     };
 
     const K = 'lf_until';
@@ -142,6 +143,28 @@
     let open = false;
     let inv = null;
     let last = null;
+    let inertNodes = [];
+
+    const setBackgroundInert = (active, overlay) => {
+        try {
+            if (active) {
+                inertNodes = [];
+                if (document.body && document.body.children) {
+                    for (const child of document.body.children) {
+                        if (child !== overlay && child.tagName !== 'SCRIPT' && !child.inert) {
+                            child.inert = true;
+                            inertNodes.push(child);
+                        }
+                    }
+                }
+            } else {
+                for (const node of inertNodes) {
+                    node.inert = false;
+                }
+                inertNodes = [];
+            }
+        } catch (e) {}
+    };
 
     const btn = el('button', {
         className: 'lf-btn',
@@ -159,6 +182,7 @@
     }
 
     function close() {
+        setBackgroundInert(false);
         document.querySelector('.lf-ov')?.remove();
         open = false;
         sup();
@@ -248,7 +272,15 @@
             textContent: t(X.no)
         });
         nb.onclick = () => close();
-        m.append(el('div', { className: 'lf-a' }, [sb, nb]));
+        const priv = el('p', { className: 'lf-priv' });
+        const privLink = el('a', {
+            href: 'https://www.narva.ee/andmekaitsetingimused',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            textContent: t(X.priv)
+        });
+        priv.append(privLink);
+        m.append(el('div', { className: 'lf-a' }, [sb, nb]), priv);
 
         let token = '';
         fetch(base + 'token.php', { cache: 'no-store' })
@@ -346,6 +378,7 @@
 
         ov.append(m);
         document.body.append(ov);
+        setBackgroundInert(true, ov);
         m.querySelector('input').focus();
     }
 

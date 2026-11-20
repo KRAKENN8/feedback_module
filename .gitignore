@@ -1,1 +1,7 @@
 config/config.php
+*.bak
+*.swp
+*.old
+*.tmp
+.DS_Store
+Thumbs.db

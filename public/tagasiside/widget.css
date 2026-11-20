@@ -165,6 +165,22 @@
     color: #b00020;
 }
 
+.lf-priv {
+    margin: .85rem 0 0;
+    font-size: 12px;
+    text-align: center;
+}
+
+.lf-priv a {
+    color: #506070;
+    text-decoration: underline;
+}
+
+.lf-priv a:hover,
+.lf-priv a:focus-visible {
+    color: #1a56a0;
+}
+
 .lf-hp {
     position: absolute;
     left: -9999px;

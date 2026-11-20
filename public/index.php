@@ -98,6 +98,7 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#123c70">
+    <meta name="description" content="<?= $h($page === 'home' ? $text['description'] : $text['content']) ?>">
     <title><?= $h($text['headings'][$page]) ?> · LIMIS</title>
     <link rel="stylesheet" href="/site.css">
     <link rel="stylesheet" href="/tagasiside/widget.css">

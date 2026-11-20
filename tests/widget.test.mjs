@@ -360,6 +360,19 @@ test('escape key closes modal and sets 30-day suppression', () => {
     assert.ok(suppressedUntil > Date.now() + 29 * 864e5);
 });
 
+test('modal dialog sets inert on background elements and restores it on close', () => {
+    const widget = loadWidget({ pageKey: 'home' });
+    const triggerBtn = widget.document.querySelector('.lf-btn');
+    assert.equal(triggerBtn.inert, undefined);
+
+    triggerBtn.onclick();
+    assert.equal(triggerBtn.inert, true);
+
+    const dialog = widget.document.querySelector('.lf-ov').children[0];
+    dialog.onkeydown({ key: 'Escape' });
+    assert.equal(triggerBtn.inert, false);
+});
+
 test('tab key navigation is trapped within modal dialog controls', () => {
     const widget = loadWidget({ pageKey: 'home' });
     const triggerBtn = widget.document.querySelector('.lf-btn');

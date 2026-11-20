@@ -1,0 +1,13 @@
+# Защита от прямого доступа к служебным файлам и папкам
+Options -Indexes
+
+# Запрет доступа к скрытым системным файлам (.git, .env и др.)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Защита служебных директорий, если DocumentRoot ошибочно направлен на корень проекта
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(config|src|bin|migrations|tests)(/|$) - [F,L]
+</IfModule>
