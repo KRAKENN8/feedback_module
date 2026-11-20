@@ -66,17 +66,40 @@ class RedisClient
             $payload .= '$' . strlen($arg) . "\r\n{$arg}\r\n";
         }
 
-        if (@fwrite($this->fp, $payload) === false) {
-            throw new RuntimeException('Failed to write to Redis socket');
+        $written = 0;
+        $payloadLength = strlen($payload);
+        while ($written < $payloadLength) {
+            $count = @fwrite($this->fp, substr($payload, $written));
+            if ($count === false || $count === 0) {
+                $this->close();
+                throw new RuntimeException('Failed to write to Redis socket');
+            }
+            $written += $count;
         }
 
         return $this->parseResponse();
     }
 
+    private function readBytes(int $length): string
+    {
+        $data = '';
+        while (strlen($data) < $length) {
+            $chunk = @fread($this->fp, $length - strlen($data));
+            if ($chunk === false || $chunk === '') {
+                $this->close();
+                throw new RuntimeException('Failed to read from Redis socket');
+            }
+            $data .= $chunk;
+        }
+
+        return $data;
+    }
+
     private function parseResponse(): mixed
     {
-        $line = fgets($this->fp);
+        $line = @fgets($this->fp);
         if ($line === false) {
+            $this->close();
             throw new RuntimeException('Failed to read from Redis socket');
         }
 
@@ -93,22 +116,22 @@ class RedisClient
                 if ($len === -1) {
                     return null;
                 }
-                $read = 0;
-                $data = '';
-                while ($read < $len) {
-                    $chunk = fread($this->fp, $len - $read);
-                    if ($chunk === false || $chunk === '') {
-                        throw new RuntimeException('Failed reading bulk string from Redis');
-                    }
-                    $data .= $chunk;
-                    $read += strlen($chunk);
+                if ($len < 0 || $len > 16777216) {
+                    throw new RuntimeException('Invalid Redis bulk string length');
                 }
-                fread($this->fp, 2); // Пропускаем завершающий \r\n
+                $data = $this->readBytes($len);
+                if ($this->readBytes(2) !== "\r\n") {
+                    $this->close();
+                    throw new RuntimeException('Invalid Redis bulk string terminator');
+                }
                 return $data;
             case '*': // Array
                 $count = (int)$content;
                 if ($count === -1) {
                     return null;
+                }
+                if ($count < 0 || $count > 1024) {
+                    throw new RuntimeException('Invalid Redis array length');
                 }
                 $arr = [];
                 for ($i = 0; $i < $count; $i++) {
@@ -123,31 +146,54 @@ class RedisClient
     }
 
     /**
-     * Атомарный счётчик ограничения частоты (Rate Limiting) на Lua-скрипте.
-     * При первом запросе создаётся счётчик и задаётся TTL.
+     * Резервирует уникальную заявку в атомарном окне rate limit.
      *
-     * @return array{allowed: bool, count: int, ttl: int}
+     * @return array{allowed: bool, count: int, ttl: int, reserved: bool}
      */
-    public function rateLimit(string $key, int $max = 3, int $ttl = 3600): array
+    public function reserveRateLimit(string $key, string $member, int $max = 3, int $ttl = 3600): array
     {
+        if ($key === '' || $member === '' || $max < 1 || $ttl < 1) {
+            throw new InvalidArgumentException('Invalid rate limit reservation parameters');
+        }
+
         $script = '
-            local current = redis.call("INCR", KEYS[1])
-            if current == 1 then
-                redis.call("EXPIRE", KEYS[1], ARGV[1])
+            local added = redis.call("SADD", KEYS[1], ARGV[1])
+            if redis.call("TTL", KEYS[1]) == -1 then
+                redis.call("EXPIRE", KEYS[1], ARGV[3])
             end
-            local ttl = redis.call("TTL", KEYS[1])
-            return {current, ttl}
+            local current = redis.call("SCARD", KEYS[1])
+            if current > tonumber(ARGV[2]) then
+                if added == 1 then
+                    redis.call("SREM", KEYS[1], ARGV[1])
+                    current = current - 1
+                    added = 0
+                end
+                return {0, current, redis.call("TTL", KEYS[1]), added}
+            end
+            return {1, current, redis.call("TTL", KEYS[1]), added}
         ';
 
-        $res = $this->cmd('EVAL', $script, '1', $key, (string)$ttl);
-        $count = (int)($res[0] ?? 0);
-        $remainingTtl = (int)($res[1] ?? 0);
+        $res = $this->cmd('EVAL', $script, '1', $key, $member, (string)$max, (string)$ttl);
 
         return [
-            'allowed' => $count <= $max,
-            'count'   => $count,
-            'ttl'     => $remainingTtl,
+            'allowed' => (int)($res[0] ?? 0) === 1,
+            'count' => (int)($res[1] ?? 0),
+            'ttl' => (int)($res[2] ?? 0),
+            'reserved' => (int)($res[3] ?? 0) === 1,
         ];
+    }
+
+    public function releaseRateLimit(string $key, string $member): bool
+    {
+        $script = '
+            local removed = redis.call("SREM", KEYS[1], ARGV[1])
+            if redis.call("SCARD", KEYS[1]) == 0 then
+                redis.call("DEL", KEYS[1])
+            end
+            return removed
+        ';
+
+        return (int)$this->cmd('EVAL', $script, '1', $key, $member) === 1;
     }
 
     public function ping(): string

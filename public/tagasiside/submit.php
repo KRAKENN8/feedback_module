@@ -81,28 +81,55 @@ if ($pg === '') {
 }
 
 $rk = 'r:' . hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? '', cfg()['secret']);
-$redisUsed = false;
+$redisEnabled = !empty(cfg()['redis_enabled']);
+$redisKey = 'lf:rate:v2:' . $rk;
+$redisReservation = null;
 
-// 1. Ограничение частоты через Redis по ТЗ № LIMIS-FEEDBACK-01 (не более 3 ответов в час)
-$redis = redis();
-if ($redis !== null) {
+// При включённом Redis отказ backend не должен переключать запросы на отдельный счётчик.
+if ($redisEnabled) {
     try {
-        $rate = $redis->rateLimit("lf:rate:$rk", 3, 3600);
+        $redis = redis();
+        if ($redis === null) {
+            throw new RuntimeException('Redis rate limiter is enabled but unavailable');
+        }
+
+        $rate = $redis->reserveRateLimit($redisKey, $nonce, 3, 3600);
         if (!$rate['allowed']) {
             out(429, ['error' => 'rate']);
         }
-        $redisUsed = true;
+
+        if ($rate['reserved']) {
+            $redisReservation = [$redisKey, $nonce];
+        }
     } catch (Throwable $e) {
-        error_log('Redis rate limit check error: ' . $e->getMessage());
+        error_log('Redis rate limit unavailable: ' . $e->getMessage());
+        out(503, ['error' => 'rate_unavailable']);
     }
 }
+
+$releaseRedisReservation = static function () use (&$redisReservation): void {
+    if ($redisReservation === null) {
+        return;
+    }
+
+    [$key, $member] = $redisReservation;
+    $redisReservation = null;
+    try {
+        $client = redis();
+        if ($client !== null) {
+            $client->releaseRateLimit($key, $member);
+        }
+    } catch (Throwable $e) {
+        error_log('Redis rate limit reservation release failed: ' . $e->getMessage());
+    }
+};
 
 try {
     $db = db();
 
-    // Если Redis не использовался (отключен или недоступен), используем MariaDB guard с advisory lock
+    // Если Redis явно отключён, ограничиваем частоту через MariaDB guard.
     $lockName = null;
-    if (!$redisUsed) {
+    if (!$redisEnabled) {
         $lockName = 'lf:' . substr($rk, 2, 61);
         $lock = $db->prepare('SELECT GET_LOCK(?, 5)');
         $lock->execute([$lockName]);
@@ -127,7 +154,7 @@ try {
         }
 
         if ($response === null) {
-            if (!$redisUsed) {
+            if (!$redisEnabled) {
                 $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
                 $c->execute([$rk]);
                 if ((int)$c->fetchColumn() >= 3) {
@@ -159,8 +186,15 @@ try {
         }
     }
 
+    if ($response[0] !== 200) {
+        $releaseRedisReservation();
+    } else {
+        $redisReservation = null;
+    }
+
     out($response[0], $response[1]);
 } catch (Throwable $e) {
+    $releaseRedisReservation();
     // без деталей клиенту
     error_log('tagasiside: ' . get_class($e));
     out(500, ['error' => 'server']);

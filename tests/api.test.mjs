@@ -137,7 +137,12 @@ test('submit endpoint enforces the 500-character comment limit', async () => {
     assert.deepEqual(await response.json(), { error: 'too_long' });
 });
 
-test('submit endpoint accepts and validates a fully formed feedback payload', async () => {
+test('submit endpoint accepts and validates a fully formed feedback payload', async (t) => {
+    if (process.env.LIMIS_TEST_ALLOW_WRITE !== '1') {
+        t.skip('Set LIMIS_TEST_ALLOW_WRITE=1 only when the server uses an isolated test database');
+        return;
+    }
+
     const tokenResponse = await fetch(tokenUrl);
     assert.equal(tokenResponse.status, 200);
     const { token } = await tokenResponse.json();
@@ -155,11 +160,6 @@ test('submit endpoint accepts and validates a fully formed feedback payload', as
         page_group: 'eservices'
     });
 
-    // Валидация входных параметров и проверка токена успешно пройдены:
-    // статус 200 (при работающей БД) либо 500 (если тестовая БД не запущена в окружении).
-    // Статусы 400, 403, 422 исключены.
-    assert.ok(
-        response.status === 200 || response.status === 500,
-        `Expected status 200 or 500, received ${response.status}`
-    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { ok: true });
 });
