@@ -96,6 +96,7 @@ class FakeElement {
             if (selector.includes('input:not([tabindex="-1"]),textarea,button:not(:disabled)')) {
                 if (el.disabled) return false;
                 if (el.tabIndex === -1 || el.getAttribute('tabindex') === '-1') return false;
+                if (el.tagName === 'A') return !!(el.href || el.getAttribute('href'));
                 return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON';
             }
             return false;
@@ -151,6 +152,12 @@ function loadWidget({
     const addEventListener = (ev, fn) => {
         if (!windowListeners.has(ev)) windowListeners.set(ev, []);
         windowListeners.get(ev).push(fn);
+    };
+    const removeEventListener = (ev, fn) => {
+        if (!windowListeners.has(ev)) return;
+        const list = windowListeners.get(ev);
+        const idx = list.indexOf(fn);
+        if (idx !== -1) list.splice(idx, 1);
     };
 
     const doc = {
@@ -355,7 +362,10 @@ test('clicking trigger button opens modal dialog and sets accessibility attribut
     const dialog = overlay.children.find(el => el.getAttribute('role') === 'dialog');
     assert.notEqual(dialog, null);
     assert.equal(dialog.getAttribute('aria-modal'), 'true');
-    assert.equal(dialog.getAttribute('aria-labelledby'), 'lf-h');
+    assert.ok(dialog.getAttribute('aria-label') === 'Tagasiside küsitlus' || dialog.getAttribute('aria-labelledby') === 'lf-h');
+    assert.equal(dialog.getAttribute('aria-describedby'), 'lf-sub');
+    assert.equal(widget.document.activeElement.id, 'lf-h');
+    assert.equal(widget.document.activeElement.tabIndex, -1);
 });
 
 test('escape key closes modal and sets 30-day suppression', () => {
@@ -392,15 +402,24 @@ test('tab key navigation is trapped within modal dialog controls', () => {
     triggerBtn.onclick();
 
     const dialog = widget.document.querySelector('.lf-ov').children[0];
-    const controls = dialog.querySelectorAll('input:not([tabindex="-1"]),textarea,button:not(:disabled)');
+    const controls = dialog.querySelectorAll('input:not([tabindex="-1"]),textarea,button:not(:disabled),a[href]');
     const firstControl = controls[0];
     const lastControl = controls[controls.length - 1];
+    assert.equal(lastControl.tagName, 'A');
 
     let defaultPrevented = false;
     const preventDefault = () => { defaultPrevented = true; };
 
     // Shift+Tab on first control focuses last control
     widget.document.activeElement = firstControl;
+    dialog.onkeydown({ key: 'Tab', shiftKey: true, preventDefault });
+    assert.equal(defaultPrevented, true);
+    assert.equal(widget.document.activeElement, lastControl);
+
+    // Shift+Tab on heading also wraps to last control
+    const heading = dialog.children.find(el => el.id === 'lf-h');
+    widget.document.activeElement = heading;
+    defaultPrevented = false;
     dialog.onkeydown({ key: 'Tab', shiftKey: true, preventDefault });
     assert.equal(defaultPrevented, true);
     assert.equal(widget.document.activeElement, lastControl);

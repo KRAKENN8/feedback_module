@@ -134,6 +134,7 @@
         er: ['Saatmine ebaõnnestus, proovige hiljem.', 'Не удалось отправить, попробуйте позже.'],
         rate: ['Liiga palju saatmisi, proovige hiljem.', 'Слишком много отправок, попробуйте позже.'],
         dup: ['Vastus on juba saadetud või seanss aegunud, proovige uuesti.', 'Отзыв уже отправлен или сессия устарела, попробуйте ещё раз.'],
+        dlg: ['Tagasiside küsitlus', 'Опрос обратной связи'],
         priv: ['Andmekaitsetingimused', 'Условия защиты данных']
     };
 
@@ -202,7 +203,17 @@
         inv = null;
     }
 
+    let escListener = null;
+
     function close() {
+        if (escListener) {
+            if (typeof removeEventListener === 'function') {
+                try {
+                    removeEventListener('keydown', escListener, true);
+                } catch (e) {}
+            }
+            escListener = null;
+        }
         setBackgroundInert(false);
         document.querySelector('.lf-ov')?.remove();
         open = false;
@@ -218,13 +229,21 @@
         last = document.activeElement;
 
         const ov = el('div', { className: 'lf-ov' });
+        ov.onclick = e => {
+            if (e.target === ov) close();
+        };
+
         const m = el('form', { className: 'lf-m', noValidate: true });
+        m.tabIndex = -1;
         m.setAttribute('role', 'dialog');
         m.setAttribute('aria-modal', 'true');
-        m.setAttribute('aria-labelledby', 'lf-h');
+        m.setAttribute('aria-label', t(X.dlg));
+        m.setAttribute('aria-describedby', 'lf-sub');
 
         const h = el('h2', { id: 'lf-h', textContent: t(X.h) });
-        m.append(h, el('p', { textContent: t(X.sub) }));
+        h.tabIndex = -1;
+        const sub = el('p', { id: 'lf-sub', textContent: t(X.sub) });
+        m.append(h, sub);
 
         Q.forEach(q => {
             const f = el('fieldset');
@@ -311,6 +330,7 @@
             textContent: t(X.no)
         });
         nb.onclick = () => close();
+        const extHint = ru ? ' (откроется в новой вкладке)' : ' (avaneb uues aknas)';
         const priv = el('p', { className: 'lf-priv' });
         const privLink = el('a', {
             href: 'https://www.narva.ee/andmekaitsetingimused',
@@ -318,6 +338,7 @@
             rel: 'noopener noreferrer',
             textContent: t(X.priv)
         });
+        privLink.setAttribute('aria-label', t(X.priv) + extHint);
         priv.append(privLink);
         m.append(el('div', { className: 'lf-a' }, [sb, nb]), priv);
 
@@ -361,6 +382,7 @@
 
                 if (r.ok) {
                     sup();
+                    m.removeAttribute('aria-describedby');
                     const thanks = el('h2', { id: 'lf-h', textContent: t(X.ok) });
                     const ok = el('button', {
                         type: 'button',
@@ -398,14 +420,19 @@
             }
         };
 
-        m.onkeydown = e => {
-            if (e.key === 'Escape') close();
+        escListener = e => {
+            if (e && (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27)) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+                close();
+                return;
+            }
             if (e.key === 'Tab') {
-                const f = [...m.querySelectorAll('input:not([tabindex="-1"]),textarea,button:not(:disabled)')];
+                const f = [...m.querySelectorAll('input:not([tabindex="-1"]),textarea,button:not(:disabled),a[href]')];
                 const a = f[0];
                 const z = f[f.length - 1];
 
-                if (e.shiftKey && document.activeElement === a) {
+                if (e.shiftKey && (document.activeElement === a || document.activeElement === h)) {
                     e.preventDefault();
                     z.focus();
                 } else if (!e.shiftKey && document.activeElement === z) {
@@ -415,10 +442,17 @@
             }
         };
 
+        m.onkeydown = escListener;
+        if (typeof addEventListener === 'function') {
+            try {
+                addEventListener('keydown', escListener, true);
+            } catch (e) {}
+        }
+
         ov.append(m);
         document.body.append(ov);
         setBackgroundInert(true, ov);
-        m.querySelector('input').focus();
+        h.focus();
     }
 
     let pages;

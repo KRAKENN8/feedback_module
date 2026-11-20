@@ -89,11 +89,25 @@
     font: 15px/1.45 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 
+.lf-m:focus {
+    outline: none;
+}
+
 .lf-m h2 {
     margin: 0 0 6px;
     font-size: 22px;
     font-weight: 750;
     color: #18324D;
+}
+
+.lf-m h2:focus {
+    outline: none;
+}
+
+.lf-m h2:focus-visible {
+    outline: 3px solid #FFD44D;
+    outline-offset: 3px;
+    border-radius: 4px;
 }
 
 .lf-m p {
