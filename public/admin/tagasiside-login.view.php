@@ -16,6 +16,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#183F68">
     <title><?= $h($T['login_title']) ?></title>
+    <link rel="icon" type="image/x-icon" href="https://limis.narva.ee/failid/png/Vapp_0_2.ico">
     <link rel="stylesheet" href="/admin/tagasiside.css">
     <script src="/admin/tagasiside.js" defer></script>
 </head>

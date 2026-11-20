@@ -109,6 +109,7 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#183F68">
     <meta name="description" content="<?= $h($page === 'home' ? $text['description'] : $text['content']) ?>">
+    <link rel="icon" type="image/x-icon" href="https://limis.narva.ee/failid/png/Vapp_0_2.ico">
     <title><?= $h($text['headings'][$page]) ?> · LIMIS</title>
     <link rel="stylesheet" href="/site.css">
     <link rel="stylesheet" href="/tagasiside/widget.css">
@@ -133,15 +134,14 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
     </script>
 </head>
 <body class="service-site">
-    <header class="site-header">
-        <div class="site-header-inner">
-            <a class="site-brand" href="?p=home&amp;lang=<?= $h($lang) ?>">
-                <span class="site-brand-name">LIMIS</span>
-                <span class="site-brand-location"><?= $h($text['brand']) ?></span>
-            </a>
-            <nav class="site-language" aria-label="<?= $h($text['language']) ?>">
-                <a href="?p=<?= $h($page) ?>&amp;lang=et" lang="et" <?= $lang === 'et' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','et');}catch(e){}">ET</a>
-                <a href="?p=<?= $h($page) ?>&amp;lang=ru" lang="ru" <?= $lang === 'ru' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','ru');}catch(e){}">RU</a>
+    <header class="limis-header site-header">
+        <div class="limis-header__inner header-inner site-header-inner">
+            <a class="limis-header__brand navbar-brand site-brand" href="?p=home&amp;lang=<?= $h($lang) ?>" title="Narva Linnavalitsuse Linnamajandusameti Infosüsteem (LIMIS)" aria-label="Narva Linnavalitsuse Linnamajandusameti Infosüsteem (LIMIS)">Narva Linnamajandusamet · LIMIS</a>
+            <nav class="limis-header__nav" aria-label="<?= $h($text['language']) ?>">
+                <div class="limis-header__langs language-switcher site-language" aria-label="<?= $h($text['language']) ?>">
+                    <a href="?p=<?= $h($page) ?>&amp;lang=et" id="et" lang="et" class="<?= $lang === 'et' ? 'is-active' : '' ?>" <?= $lang === 'et' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','et');}catch(e){}">ET</a>
+                    <a href="?p=<?= $h($page) ?>&amp;lang=ru" id="ru" lang="ru" class="<?= $lang === 'ru' ? 'is-active' : '' ?>" <?= $lang === 'ru' ? 'aria-current="page"' : '' ?> onclick="try{localStorage.setItem('language','ru');}catch(e){}">RU</a>
+                </div>
             </nav>
         </div>
     </header>

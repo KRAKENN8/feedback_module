@@ -22,19 +22,22 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#183F68">
     <title><?= $h($T['dashboard_title']) ?> · LIMIS</title>
+    <link rel="icon" type="image/x-icon" href="https://limis.narva.ee/failid/png/Vapp_0_2.ico">
     <link rel="stylesheet" href="/admin/tagasiside.css">
     <script src="/admin/tagasiside.js" defer></script>
 </head>
 <body class="dashboard-page">
-    <header class="topbar">
-        <div class="topbar-inner">
-            <a class="brand" href="/" aria-label="<?= $h($T['home_label']) ?>">
-                <span class="brand-name">LIMIS <span>· NARVA</span></span>
+    <header class="limis-header site-header topbar">
+        <div class="limis-header__inner header-inner topbar-inner">
+            <a class="limis-header__brand navbar-brand brand" href="/" title="Narva Linnavalitsuse Linnamajandusameti Infosüsteem (LIMIS)" aria-label="<?= $h($T['home_label']) ?>">
+                Narva Linnamajandusamet · LIMIS
             </a>
             <div class="topbar-label"><?= $h($T['admin_label']) ?></div>
-            <nav class="language-switch" aria-label="<?= $ui === 'et' ? 'Keelevalik' : 'Выбор языка' ?>">
-                <a href="?days=<?= $days ?>&amp;lang=<?= $h($lang) ?>&amp;ui=et" lang="et" <?= $ui === 'et' ? 'aria-current="page"' : '' ?>>ET</a>
-                <a href="?days=<?= $days ?>&amp;lang=<?= $h($lang) ?>&amp;ui=ru" lang="ru" <?= $ui === 'ru' ? 'aria-current="page"' : '' ?>>RU</a>
+            <nav class="limis-header__nav" aria-label="<?= $ui === 'et' ? 'Keelevalik' : 'Выбор языка' ?>">
+                <div class="limis-header__langs language-switcher language-switch" aria-label="<?= $ui === 'et' ? 'Keelevalik' : 'Выбор языка' ?>">
+                    <a href="?days=<?= $days ?>&amp;lang=<?= $h($lang) ?>&amp;ui=et" id="et" lang="et" class="<?= $ui === 'et' ? 'is-active' : '' ?>" <?= $ui === 'et' ? 'aria-current="page"' : '' ?>>ET</a>
+                    <a href="?days=<?= $days ?>&amp;lang=<?= $h($lang) ?>&amp;ui=ru" id="ru" lang="ru" class="<?= $ui === 'ru' ? 'is-active' : '' ?>" <?= $ui === 'ru' ? 'aria-current="page"' : '' ?>>RU</a>
+                </div>
             </nav>
             <form method="post" class="logout-form">
                 <input type="hidden" name="csrf" value="<?= $h($csrf) ?>">
