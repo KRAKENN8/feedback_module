@@ -259,6 +259,7 @@
 
                 if (r.ok) {
                     sup();
+                    const thanks = el('h2', { id: 'lf-h', textContent: t(X.ok) });
                     const ok = el('button', {
                         type: 'button',
                         className: 'lf-primary',
@@ -266,8 +267,7 @@
                         onclick: () => close()
                     });
                     m.replaceChildren(
-                        h,
-                        el('p', { textContent: t(X.ok) }),
+                        thanks,
                         el('div', { className: 'lf-a lf-success-actions' }, [ok])
                     );
                     ok.focus();
