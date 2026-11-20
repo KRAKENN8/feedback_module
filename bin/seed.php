@@ -15,6 +15,18 @@ $s = db()->prepare('INSERT INTO limis_tagasiside(created_at,lang,purpose,complet
 
 $pk = fn($a) => $a[array_rand($a)];
 
+$seedComments = [
+    '[SEED] Väga mugav ja arusaadav teenus.',
+    '[SEED] Leidsin vajaliku teabe kiiresti üles.',
+    '[SEED] Sooviksin rohkem selgitusi taotluse esitamisel.',
+    '[SEED] Понятный интерфейс, спасибо за обновления.',
+    '[SEED] Не сразу нашел нужный раздел, но в целом удобно.',
+    '[SEED] Работает быстро и без сбоев.',
+    '[SEED] =HYPERLINK("https://example.com")',
+    '[SEED] <script>alert(1)</script> test XSS injection',
+    '[SEED] Tagasiside ilma lisakommentaarita.'
+];
+
 for ($i = 0; $i < 60; $i++) {
     $s->execute([
         $i < 8 ? 200 : random_int(0, 170),
@@ -23,9 +35,9 @@ for ($i = 0; $i < 60; $i++) {
         $pk(ENUMS['completed']),
         random_int(1, 5),
         $pk(ENUMS['difficulty']),
-        $i % 7 ? null : ($i % 14 ? '=HYPERLINK("x")' : '<script>alert(1)</script> test'),
+        $seedComments[$i % count($seedComments)],
         $pk(ENUMS['page_group'])
     ]);
 }
 
-echo "Seeded 60 synthetic rows\n";
+echo "Seeded 60 synthetic rows with [SEED] markers\n";

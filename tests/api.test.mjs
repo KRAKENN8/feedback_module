@@ -157,7 +157,7 @@ test('submit endpoint accepts and validates a fully formed feedback payload', as
     const testMarker = `LIMIS_TEST_AUTO_${Date.now()}`;
     t.after(() => {
         try {
-            const phpBin = process.env.PHP_BINARY || process.env.PHP_BIN || 'E:\\workspace\\devtools\\db\\xampp\\php8.5\\php.exe';
+            const phpBin = process.env.PHP_BINARY || process.env.PHP_BIN || 'php';
             execSync(`"${phpBin}" -r "require 'src/bootstrap.php'; db()->prepare('DELETE FROM limis_tagasiside WHERE comment = ?')->execute(['${testMarker}']);"`, { stdio: 'ignore' });
         } catch (_) {}
     });

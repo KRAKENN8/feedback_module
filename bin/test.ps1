@@ -12,9 +12,12 @@ $ErrorActionPreference = "Stop"
 if (-not $PhpPath) {
     $candidates = @(
         $env:PHP_BINARY,
-        "E:\workspace\devtools\db\xampp\php8.5\php.exe",
-        "E:\workspace\devtools\db\xampp\php\php.exe",
-        (Get-Command php -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
+        $env:PHP_BIN,
+        (Get-Command php -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source),
+        "C:\php\php.exe",
+        "C:\tools\php\php.exe",
+        "C:\xampp\php\php.exe",
+        "C:\Program Files\PHP\php.exe"
     )
     foreach ($cand in $candidates) {
         if ($cand -and (Test-Path $cand)) {
@@ -25,7 +28,7 @@ if (-not $PhpPath) {
 }
 
 if (-not $PhpPath -or -not (Test-Path $PhpPath)) {
-    Write-Error "PHP binary not found. Specify via -PhpPath 'C:\path\to\php.exe'"
+    Write-Error "PHP binary not found in PATH or standard directories. Specify via -PhpPath 'C:\path\to\php.exe' or set `$env:PHP_BINARY."
     exit 1
 }
 
