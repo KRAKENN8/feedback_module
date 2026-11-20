@@ -1,16 +1,16 @@
 :root {
     color-scheme: light;
-    --navy: #123c70;
-    --blue: #1762a5;
-    --blue-dark: #104c83;
-    --blue-light: #eaf3fa;
+    --navy: #183F68;
+    --blue: #24578A;
+    --blue-dark: #183F68;
+    --blue-light: #EEF4FB;
     --green: #64a887;
-    --ink: #1d2c3b;
-    --muted: #657587;
-    --line: #dce5ec;
+    --ink: #18324D;
+    --muted: #607188;
+    --line: #D6E0EA;
     --surface: #fff;
-    --canvas: #f3f6f8;
-    --shadow: 0 12px 36px rgba(27, 57, 82, .08);
+    --canvas: #F3F4F7;
+    --shadow: 0 12px 36px rgba(13, 35, 59, .08);
 }
 
 * {
@@ -21,7 +21,7 @@ body {
     margin: 0;
     color: var(--ink);
     background: var(--canvas);
-    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 15px/1.55 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 
 button,
@@ -133,7 +133,7 @@ a {
 a:focus-visible,
 input:focus-visible,
 select:focus-visible {
-    outline: 3px solid #9ed5bc;
+    outline: 3px solid #FFD44D;
     outline-offset: 2px;
 }
 

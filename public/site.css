@@ -1,11 +1,11 @@
 :root {
     color-scheme: light;
-    --navy: #123c70;
-    --blue: #1762a5;
-    --ink: #1d2c3b;
-    --muted: #475569;
-    --line: #dce5ec;
-    --canvas: #f3f6f8;
+    --navy: #183F68;
+    --blue: #24578A;
+    --ink: #18324D;
+    --muted: #607188;
+    --line: #D6E0EA;
+    --canvas: #F3F4F7;
 }
 
 * {
@@ -16,7 +16,7 @@ body {
     margin: 0;
     color: var(--ink);
     background: var(--canvas);
-    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 16px/1.55 'Montserrat', 'Segoe UI', Arial, sans-serif;
 }
 
 .site-header {
@@ -52,7 +52,7 @@ body {
 }
 
 .site-brand-location {
-    color: #d6e2ee;
+    color: #E1EBF5;
     font-size: 11px;
     font-weight: 650;
     letter-spacing: .12em;
@@ -65,19 +65,20 @@ body {
 
 .site-language a {
     min-width: 42px;
-    padding: 8px;
-    color: #e4edf5;
-    border-radius: 6px;
+    padding: 6px 8px;
+    color: #DAE8F6;
+    border-radius: 5px;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 650;
     text-align: center;
     text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
 }
 
 .site-language a:hover,
 .site-language a[aria-current="page"] {
-    color: var(--navy);
-    background: #fff;
+    color: #fff;
+    background: rgba(255, 255, 255, .17);
 }
 
 .site-main {
@@ -239,7 +240,7 @@ body {
 .demo-apply-form .form-control:focus {
     outline: none;
     border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(23, 98, 165, .18);
+    box-shadow: 0 0 0 3px rgba(36, 87, 138, .2);
 }
 
 .demo-apply-form textarea.form-control {
@@ -258,25 +259,27 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 20px;
+    padding: 10px 22px;
     font: inherit;
-    font-size: 14.5px;
-    font-weight: 650;
+    font-size: 14px;
+    font-weight: 700;
     text-align: center;
     text-decoration: none;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 9px;
     cursor: pointer;
     transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
 
 .btn-primary {
     color: #fff;
-    background: var(--navy);
+    background: var(--blue);
+    border-color: var(--blue);
 }
 
 .btn-primary:hover {
-    background: var(--blue);
+    background: var(--navy);
+    border-color: var(--navy);
 }
 
 .btn-secondary {
@@ -286,18 +289,18 @@ body {
 }
 
 .btn-secondary:hover {
-    background: #f7fafc;
-    border-color: #cbd5e1;
+    background: #FAFCFE;
+    border-color: #9CBAD5;
 }
 
 .btn:focus-visible,
 .form-control:focus-visible {
-    outline: 3px solid #f5a300;
-    outline-offset: 2px;
+    outline: 3px solid #FFD44D;
+    outline-offset: 3px;
 }
 
 a:focus-visible {
-    outline: 3px solid #f5a300;
+    outline: 3px solid #FFD44D;
     outline-offset: 3px;
 }
 

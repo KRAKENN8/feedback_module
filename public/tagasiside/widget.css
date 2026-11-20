@@ -4,21 +4,28 @@
     right: 1rem;
     bottom: 1rem;
     z-index: 900;
-    background: #1a56a0;
+    background: #24578A;
     color: #fff;
-    border: 0;
-    border-radius: 2rem;
-    padding: .7rem 1.1rem;
-    font: 600 15px system-ui;
+    border: 1px solid #24578A;
+    border-radius: 99px;
+    padding: .7rem 1.2rem;
+    font: 700 15px 'Montserrat', 'Segoe UI', Arial, sans-serif;
     cursor: pointer;
+    box-shadow: 0 4px 16px rgba(13, 35, 59, .2);
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.lf-btn:hover {
+    background: #183F68;
+    border-color: #183F68;
 }
 
 .lf-btn:focus-visible,
 .lf-m button:focus-visible,
 .lf-m input:focus-visible,
 .lf-m textarea:focus-visible {
-    outline: 3px solid #f5a300;
-    outline-offset: 2px;
+    outline: 3px solid #FFD44D;
+    outline-offset: 3px;
 }
 
 .lf-inv {
@@ -30,12 +37,12 @@
     max-width: min(300px, calc(100vw - 2rem));
     z-index: 900;
     background: #fff;
-    color: #1a1a1a;
-    border: 1px solid #888;
-    border-radius: 8px;
-    padding: .8rem;
-    font: 15px system-ui;
-    box-shadow: 0 2px 8px #0003;
+    color: #18324D;
+    border: 1px solid #D6E0EA;
+    border-radius: 13px;
+    padding: .85rem 1rem;
+    font: 14.5px/1.4 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    box-shadow: 0 12px 30px rgba(13, 35, 59, .15);
     animation: lf-invite-enter .24s ease-out both;
 }
 
@@ -55,12 +62,12 @@
     box-sizing: border-box;
     position: fixed;
     inset: 0;
-    background: #0007;
+    background: rgba(9, 23, 40, .52);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: .5rem;
+    padding: 16px;
 }
 
 .lf-ov *,
@@ -70,15 +77,27 @@
 
 .lf-m {
     background: #fff;
-    color: #1a1a1a;
+    color: #18324D;
     max-width: 560px;
     width: 100%;
     max-height: calc(100vh - 1rem);
     max-height: calc(100dvh - 1rem);
     overflow: auto;
-    border-radius: 10px;
-    padding: 1.2rem;
-    font: 16px/1.4 system-ui;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(13, 35, 59, .24);
+    padding: 1.4rem 1.6rem;
+    font: 15px/1.45 'Montserrat', 'Segoe UI', Arial, sans-serif;
+}
+
+.lf-m h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 750;
+    color: #18324D;
+}
+
+.lf-m p {
+    color: #607188;
 }
 
 .lf-m fieldset {
@@ -88,33 +107,48 @@
 }
 
 .lf-m legend {
-    font-weight: 600;
+    font-weight: 700;
+    color: #18324D;
     margin-bottom: .3rem;
 }
 
 .lf-m label {
     display: block;
-    padding: .2rem 0;
+    padding: .25rem 0;
+    color: #18324D;
+    cursor: pointer;
 }
 
 .lf-m textarea {
     width: 100%;
     min-height: 5rem;
     font: inherit;
+    color: #18324D;
+    background: #fff;
+    border: 1px solid #D6E0EA;
+    border-radius: 8px;
+    padding: .6rem;
+    transition: border-color .15s ease;
+}
+
+.lf-m textarea:focus {
+    border-color: #24578A;
 }
 
 .lf-m .lf-comment-label {
-    font-weight: 600;
+    font-weight: 700;
+    color: #18324D;
 }
 
 .lf-m .lf-warning {
-    margin: .2rem 0;
-    font-size: 14px;
+    margin: .25rem 0;
+    font-size: 13.5px;
+    color: #607188;
 }
 
 .lf-m .lf-count {
     margin: .25rem 0 0;
-    color: #555;
+    color: #607188;
     font-size: 13px;
     text-align: right;
 }
@@ -133,36 +167,50 @@
 .lf-m .lf-a button,
 .lf-inv button {
     font: inherit;
-    padding: .6rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #1a56a0;
+    font-size: 14px;
+    font-weight: 650;
+    padding: .65rem 1.1rem;
+    border-radius: 9px;
+    border: 1px solid #D6E0EA;
     background: #fff;
-    color: #1a56a0;
+    color: #24578A;
     cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
 }
 
 .lf-inv .lf-inv-title {
     margin: 0 0 .5rem;
-    font-weight: 600;
+    font-weight: 700;
+    color: #18324D;
 }
 
 .lf-inv .lf-inv-dismiss {
     margin-left: .4rem;
 }
 
+.lf-m .lf-a button:hover,
+.lf-inv button:hover {
+    background: #FAFCFE;
+    border-color: #9CBAD5;
+}
+
 .lf-m .lf-a button[type=submit],
 .lf-m .lf-a button.lf-primary {
-    background: #1a56a0;
+    background: #24578A;
+    border-color: #24578A;
     color: #fff;
+    font-weight: 700;
 }
 
 .lf-m .lf-a button[type=submit]:hover,
 .lf-m .lf-a button.lf-primary:hover {
-    background: #144783;
+    background: #183F68;
+    border-color: #183F68;
 }
 
 .lf-err {
-    color: #b00020;
+    color: #9D2633;
+    font-weight: 600;
 }
 
 .lf-priv {
@@ -172,13 +220,13 @@
 }
 
 .lf-priv a {
-    color: #506070;
+    color: #607188;
     text-decoration: underline;
 }
 
 .lf-priv a:hover,
 .lf-priv a:focus-visible {
-    color: #1a56a0;
+    color: #24578A;
 }
 
 .lf-hp {
@@ -209,9 +257,9 @@
     }
 
     .lf-m {
-        padding: 1rem;
-        border-radius: 12px;
-        font-size: 15px;
+        padding: 1.1rem;
+        border-radius: 14px;
+        font-size: 14.5px;
     }
 }
 
