@@ -162,7 +162,7 @@
                             <div class="comment-meta">
                                 <time><?= $h($c['created_at']) ?></time>
                                 <span class="language-tag"><?= $h(strtoupper($c['lang'])) ?></span>
-                                <span class="rating-tag rating-tag--<?= $score ?>" data-rating="<?= $score ?>"><?= $score ?>/5 <?= $h($T['ease_suffix']) ?></span>
+                                <span class="rating-tag rating-tag--<?= $score ?>" data-rating="<?= $score ?>"><?= $score ?>/5 · <?= $h($T['ease_words'][(string)$score] ?? $T['ease_suffix']) ?></span>
                             </div>
                             <p><?= $h($c['comment']) ?></p>
                         </li>
