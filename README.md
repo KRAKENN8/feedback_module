@@ -16,12 +16,12 @@
 
 1. **Создайте тестовую базу данных:**
    ```sql
-   CREATE DATABASE limis_feedback_proto CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE DATABASE limis_feedback CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
 2. **Примените миграцию схемы:**
    ```sh
-   mariadb limis_feedback_proto < migrations/001_install.sql
+   mariadb limis_feedback < migrations/001_install.sql
    ```
 
 3. **Создайте конфигурационный файл:**
@@ -79,7 +79,7 @@
 
 Для полного удаления таблиц модуля (например, при деинсталляции):
 ```sh
-mariadb limis_feedback_proto < migrations/001_rollback.sql
+mariadb limis_feedback < migrations/001_rollback.sql
 ```
 > [!CAUTION]
 > Скрипт безвозвратно удаляет таблицы модуля (`limis_tagasiside`, `limis_tagasiside_nonce`) и все накопленные данные. Перед запуском обязательно создайте резервную копию базы данных.

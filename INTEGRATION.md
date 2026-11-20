@@ -140,10 +140,10 @@ php -r "echo password_hash('replace-with-a-long-password', PASSWORD_DEFAULT), PH
 
 ```sql
 -- Отзыв всех глобальных привилегий и прав DDL
-REVOKE ALL PRIVILEGES ON limis_feedback.* FROM 'proto'@'localhost';
+REVOKE ALL PRIVILEGES ON limis_feedback.* FROM 'limis_feedback_app'@'localhost';
 
 -- Выдача исключительно требуемых прав DML и блокировок
-GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON limis_feedback.* TO 'proto'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON limis_feedback.* TO 'limis_feedback_app'@'localhost';
 
 -- Применение изменений
 FLUSH PRIVILEGES;

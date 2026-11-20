@@ -121,10 +121,14 @@ if (isset($_GET['csv'])) {
     $cols = ['id', 'created_at', 'lang', 'purpose', 'completed', 'ease_rating', 'difficulty', 'comment', 'page_group'];
     fputcsv($o, $cols, ';', '"', "\\");
 
-    $stmt = db()->prepare("SELECT " . implode(',', $cols) . " FROM limis_tagasiside WHERE $w ORDER BY id DESC");
-    $stmt->execute($a);
-    while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-        fputcsv($o, array_map($safe, $row), ';', '"', "\\");
+    try {
+        $stmt = db()->prepare("SELECT " . implode(',', $cols) . " FROM limis_tagasiside WHERE $w ORDER BY id DESC");
+        $stmt->execute($a);
+        while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+            fputcsv($o, array_map($safe, $row), ';', '"', "\\");
+        }
+    } catch (Throwable $e) {
+        error_log('CSV export database error: ' . $e->getMessage());
     }
     exit;
 }
