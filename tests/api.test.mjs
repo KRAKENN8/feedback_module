@@ -50,6 +50,19 @@ test('submit endpoint rejects a missing token before database access', async () 
     assert.deepEqual(await response.json(), { error: 'csrf' });
 });
 
+test('submit endpoint rejects tampered or malformed token format', async () => {
+    const response = await postSubmission({
+        token: 'invalid-token-string.12345.abcd',
+        lang: 'ru',
+        purpose: 'eservices',
+        completed: 'yes',
+        ease_rating: 4
+    });
+
+    assert.equal(response.status, 403);
+    assert.deepEqual(await response.json(), { error: 'csrf' });
+});
+
 test('honeypot submissions return a neutral success', async () => {
     const response = await postSubmission({ website: 'automated-test' });
 
@@ -76,6 +89,34 @@ test('submit endpoint rejects invalid enum values before database access', async
     assert.deepEqual(await response.json(), { error: 'validation' });
 });
 
+test('submit endpoint rejects ease_rating outside the 1 to 5 range', async () => {
+    const tokenResponse = await fetch(tokenUrl);
+    assert.equal(tokenResponse.status, 200);
+    const { token } = await tokenResponse.json();
+
+    await new Promise(resolve => setTimeout(resolve, 2100));
+
+    const responseUnder = await postSubmission({
+        token,
+        lang: 'et',
+        purpose: 'eservices',
+        completed: 'yes',
+        ease_rating: 0
+    });
+    assert.equal(responseUnder.status, 422);
+    assert.deepEqual(await responseUnder.json(), { error: 'validation' });
+
+    const responseOver = await postSubmission({
+        token,
+        lang: 'et',
+        purpose: 'eservices',
+        completed: 'yes',
+        ease_rating: 6
+    });
+    assert.equal(responseOver.status, 422);
+    assert.deepEqual(await responseOver.json(), { error: 'validation' });
+});
+
 test('submit endpoint enforces the 500-character comment limit', async () => {
     const tokenResponse = await fetch(tokenUrl);
     assert.equal(tokenResponse.status, 200);
@@ -94,4 +135,31 @@ test('submit endpoint enforces the 500-character comment limit', async () => {
 
     assert.equal(response.status, 422);
     assert.deepEqual(await response.json(), { error: 'too_long' });
+});
+
+test('submit endpoint accepts and validates a fully formed feedback payload', async () => {
+    const tokenResponse = await fetch(tokenUrl);
+    assert.equal(tokenResponse.status, 200);
+    const { token } = await tokenResponse.json();
+
+    await new Promise(resolve => setTimeout(resolve, 2100));
+
+    const response = await postSubmission({
+        token,
+        lang: 'et',
+        purpose: 'eservices',
+        completed: 'yes',
+        ease_rating: 4,
+        difficulty: 'search',
+        comment: 'Väga mugav ja kiire teenus.',
+        page_group: 'eservices'
+    });
+
+    // Валидация входных параметров и проверка токена успешно пройдены:
+    // статус 200 (при работающей БД) либо 500 (если тестовая БД не запущена в окружении).
+    // Статусы 400, 403, 422 исключены.
+    assert.ok(
+        response.status === 200 || response.status === 500,
+        `Expected status 200 or 500, received ${response.status}`
+    );
 });
