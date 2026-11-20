@@ -63,15 +63,33 @@ class FeedbackValidator
             return ['ok' => false, 'error' => 'validation'];
         }
 
-        // Проверка типа комментария
-        if ($com !== null && !is_string($com)) {
-            return ['ok' => false, 'error' => 'validation'];
+        // Проверка типа комментария и валидности UTF-8
+        if ($com !== null) {
+            if (!is_string($com)) {
+                return ['ok' => false, 'error' => 'validation'];
+            }
+            $isUtf8 = function_exists('mb_check_encoding')
+                ? mb_check_encoding($com, 'UTF-8')
+                : (preg_match('//u', $com) === 1);
+            if (!$isUtf8) {
+                return ['ok' => false, 'error' => 'validation'];
+            }
         }
 
         // Очистка от управляющих символов и проверка длины (максимум 500 символов)
-        $com = $com === null ? null : trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $com));
-        if ($com !== null && mb_strlen($com) > 500) {
-            return ['ok' => false, 'error' => 'too_long'];
+        if ($com !== null) {
+            $cleaned = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $com);
+            $com = $cleaned === null ? null : trim($cleaned);
+            if ($com !== null && $com !== '') {
+                $charCount = function_exists('mb_strlen')
+                    ? mb_strlen($com, 'UTF-8')
+                    : (preg_match_all('/./u', $com) ?: strlen($com));
+                if ($charCount > 500) {
+                    return ['ok' => false, 'error' => 'too_long'];
+                }
+            } else {
+                $com = null;
+            }
         }
 
         return [

@@ -98,6 +98,7 @@ function db(): PDO
         cfg()['db_pass'],
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]
     );
@@ -154,5 +155,5 @@ const ENUMS = [
     'purpose' => ['eservices', 'procurement', 'property', 'account', 'appointment', 'other'],
     'completed' => ['yes', 'partial', 'no', 'none'],
     'difficulty' => ['search', 'application', 'ui', 'mobile', 'speed', 'none', 'other'],
-    'page_group' => ['home', 'eservices', 'procurement', 'property', 'account', 'appointment'],
+    'page_group' => ['home', 'eservices', 'procurement', 'property', 'account', 'appointment', 'general', 'other'],
 ];

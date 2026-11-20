@@ -102,6 +102,10 @@ $q = function (string $sql, array $p = []) {
     return $s;
 };
 
+// Безопасные заголовки для защиты от MIME-sniffing и Clickjacking
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+
 // Экспорт отзывов в формате CSV
 if (isset($_GET['csv'])) {
     header('Content-Type: text/csv; charset=utf-8');
@@ -114,9 +118,13 @@ if (isset($_GET['csv'])) {
     // Защита от CSV Formula Injection: экранирование символов '=', '+', '-', '@', '\t', '\r'
     $safe = fn($v) => ($v !== null && preg_match('/^[=+\-@\t\r]/', (string)$v)) ? "'" . $v : $v;
 
-    fputcsv($o, ['id', 'created_at', 'lang', 'purpose', 'completed', 'ease_rating', 'difficulty', 'comment', 'page_group'], ';', '"', '');
-    foreach ($q("SELECT * FROM limis_tagasiside WHERE $w ORDER BY id DESC", $a) as $r) {
-        fputcsv($o, array_map($safe, $r), ';', '"', '');
+    $cols = ['id', 'created_at', 'lang', 'purpose', 'completed', 'ease_rating', 'difficulty', 'comment', 'page_group'];
+    fputcsv($o, $cols, ';', '"', "\\");
+
+    $stmt = db()->prepare("SELECT " . implode(',', $cols) . " FROM limis_tagasiside WHERE $w ORDER BY id DESC");
+    $stmt->execute($a);
+    while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
+        fputcsv($o, array_map($safe, $row), ';', '"', "\\");
     }
     exit;
 }

@@ -25,6 +25,7 @@ require __DIR__ . '/../../src/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
 
 /**
  * Вспомогательная функция отправки JSON-ответа и завершения работы скрипта.
@@ -205,6 +206,6 @@ try {
 } catch (Throwable $e) {
     $releaseRedisReservation();
     // Логирование внутренней ошибки сервера без раскрытия деталей клиенту
-    error_log('tagasiside: ' . get_class($e));
+    error_log('tagasiside submit error: ' . $e->getMessage());
     out(500, ['error' => 'server']);
 }
