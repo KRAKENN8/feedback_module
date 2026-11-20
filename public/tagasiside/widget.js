@@ -70,6 +70,7 @@
         h: ['Aita muuta LIMIS paremaks!', 'Помогите сделать LIMIS лучше!'],
         sub: ['Osalemine on vabatahtlik, vastamine võtab umbes minuti.', 'Участие добровольное, заполнение занимает около минуты.'],
         c: ['Mida võiksime parandada?', 'Что нам следует улучшить?'],
+        count: ['{count} / {max} tähemärki', '{count} / {max} символов'],
         w: ['Ärge märkige nimesid, isikukoode, kontaktandmeid ega konkreetsete asjade andmeid.', 'Не указывайте имена, личные коды, контактные данные или сведения о конкретных делах.'],
         send: ['Saada tagasiside', 'Отправить отзыв'],
         no: ['Mitte praegu', 'Не сейчас'],
@@ -181,8 +182,16 @@
             style: 'font-size:14px;margin:.2rem 0'
         });
         wr.id = 'lf-w';
-        ta.setAttribute('aria-describedby', 'lf-w');
-        cf.append(cl, wr, ta);
+        const counter = el('p', { id: 'lf-count', className: 'lf-count' });
+        const updateCounter = () => {
+            counter.textContent = t(X.count)
+                .replace('{count}', String([...ta.value].length))
+                .replace('{max}', String(ta.maxLength));
+        };
+        updateCounter();
+        ta.setAttribute('aria-describedby', 'lf-w lf-count');
+        ta.addEventListener('input', updateCounter);
+        cf.append(cl, wr, ta, counter);
         m.append(cf);
 
         const hp = el('input', {
@@ -250,16 +259,18 @@
 
                 if (r.ok) {
                     sup();
+                    const ok = el('button', {
+                        type: 'button',
+                        className: 'lf-primary',
+                        textContent: 'OK',
+                        onclick: () => close()
+                    });
                     m.replaceChildren(
                         h,
                         el('p', { textContent: t(X.ok) }),
-                        el('button', {
-                            type: 'button',
-                            textContent: 'OK',
-                            onclick: () => close()
-                        })
+                        el('div', { className: 'lf-a lf-success-actions' }, [ok])
                     );
-                    m.querySelector('button').focus();
+                    ok.focus();
                 } else {
                     er.textContent = t(r.status === 429 ? X.rate : X.er);
                     if (r.status !== 409) {

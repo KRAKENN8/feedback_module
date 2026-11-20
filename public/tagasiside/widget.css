@@ -89,10 +89,22 @@
     font: inherit;
 }
 
+.lf-m .lf-count {
+    margin: .25rem 0 0;
+    color: #555;
+    font-size: 13px;
+    text-align: right;
+}
+
 .lf-m .lf-a {
     display: flex;
     gap: .5rem;
     flex-wrap: wrap;
+}
+
+.lf-m .lf-success-actions {
+    justify-content: flex-end;
+    margin-top: 1.25rem;
 }
 
 .lf-m .lf-a button,
@@ -106,9 +118,15 @@
     cursor: pointer;
 }
 
-.lf-m .lf-a button[type=submit] {
+.lf-m .lf-a button[type=submit],
+.lf-m .lf-a button.lf-primary {
     background: #1a56a0;
     color: #fff;
+}
+
+.lf-m .lf-a button[type=submit]:hover,
+.lf-m .lf-a button.lf-primary:hover {
+    background: #144783;
 }
 
 .lf-err {
