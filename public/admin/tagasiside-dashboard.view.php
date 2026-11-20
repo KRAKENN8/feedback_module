@@ -157,11 +157,12 @@
             <?php if ($comments): ?>
                 <ul class="comment-list">
                     <?php foreach ($comments as $c): ?>
+                        <?php $score = (int)$c['ease_rating']; ?>
                         <li class="comment">
                             <div class="comment-meta">
                                 <time><?= $h($c['created_at']) ?></time>
                                 <span class="language-tag"><?= $h(strtoupper($c['lang'])) ?></span>
-                                <span class="rating-tag"><?= (int)$c['ease_rating'] ?>/5 <?= $h($T['ease_suffix']) ?></span>
+                                <span class="rating-tag rating-tag--<?= $score ?>" data-rating="<?= $score ?>"><?= $score ?>/5 <?= $h($T['ease_suffix']) ?></span>
                             </div>
                             <p><?= $h($c['comment']) ?></p>
                         </li>

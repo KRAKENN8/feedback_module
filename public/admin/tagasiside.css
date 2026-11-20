@@ -551,11 +551,50 @@ select:hover,
     border-radius: 99px;
     font-size: 11px;
     font-weight: 650;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.4;
+    border: 1px solid transparent;
 }
 
 .rating-tag {
-    color: #4b755f;
+    color: #3e586c;
+    background: #edf3f7;
+}
+
+.rating-tag--1,
+.rating-tag[data-rating="1"] {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+.rating-tag--2,
+.rating-tag[data-rating="2"] {
+    color: #9a3412;
+    background: #ffedd5;
+    border-color: #fed7aa;
+}
+
+.rating-tag--3,
+.rating-tag[data-rating="3"] {
+    color: #854d0e;
+    background: #fef3c7;
+    border-color: #fde68a;
+}
+
+.rating-tag--4,
+.rating-tag[data-rating="4"] {
+    color: #166534;
     background: #eaf4ee;
+    border-color: #c7e8d3;
+}
+
+.rating-tag--5,
+.rating-tag[data-rating="5"] {
+    color: #14532d;
+    background: #dcfce7;
+    border-color: #bbf7d0;
 }
 
 .comment p {
