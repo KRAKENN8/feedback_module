@@ -2,7 +2,8 @@
 param(
     [string]$PhpPath = "",
     [string]$NodePath = "",
-    [int]$TestPort = 8089
+    [int]$TestPort = 8089,
+    [switch]$Clean
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,6 +27,13 @@ if (-not $PhpPath) {
 if (-not $PhpPath -or -not (Test-Path $PhpPath)) {
     Write-Error "PHP binary not found. Specify via -PhpPath 'C:\path\to\php.exe'"
     exit 1
+}
+
+# 1.1. Очистка тестовых записей по ключу -Clean
+if ($Clean) {
+    Write-Host "Running test data cleanup (bin/clean-tests.php)..." -ForegroundColor Yellow
+    & $PhpPath bin/clean-tests.php
+    exit $LASTEXITCODE
 }
 
 # 2. Поиск Node.js
@@ -108,6 +116,10 @@ try {
 } finally {
     if ($serverProcess -and -not $serverProcess.HasExited) {
         Stop-Process -Id $serverProcess.Id -Force
+    }
+    if ($env:LIMIS_TEST_ALLOW_WRITE -eq "1") {
+        Write-Host "`nCleaning up test records from database..." -ForegroundColor Yellow
+        & $PhpPath bin/clean-tests.php
     }
 }
 

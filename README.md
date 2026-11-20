@@ -88,9 +88,10 @@ mariadb limis_feedback < migrations/001_rollback.sql
 
 ```text
 ├── bin/
+│   ├── clean-tests.php        # CLI-скрипт очистки базы данных от тестовых и синтетических записей
 │   ├── purge.php              # CLI-скрипт регламентной очистки данных (180 дней)
 │   ├── seed.php               # Генератор синтетических тестовых отзывов для разработки
-│   └── test.ps1               # Автоматизированный запуск всех тестов в один клик
+│   └── test.ps1               # Автоматизированный запуск всех тестов в один клик (-Clean для очистки)
 ├── config/
 │   └── config.example.php     # Шаблон конфигурации (DSN, secret, Redis, auth_mode, trusted_proxies)
 ├── migrations/

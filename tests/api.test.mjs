@@ -9,6 +9,7 @@
  */
 
 import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
 import test from 'node:test';
 
 const baseUrl = (process.env.LIMIS_TEST_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
@@ -153,6 +154,14 @@ test('submit endpoint accepts and validates a fully formed feedback payload', as
         return;
     }
 
+    const testMarker = `LIMIS_TEST_AUTO_${Date.now()}`;
+    t.after(() => {
+        try {
+            const phpBin = process.env.PHP_BINARY || process.env.PHP_BIN || 'E:\\workspace\\devtools\\db\\xampp\\php8.5\\php.exe';
+            execSync(`"${phpBin}" -r "require 'src/bootstrap.php'; db()->prepare('DELETE FROM limis_tagasiside WHERE comment = ?')->execute(['${testMarker}']);"`, { stdio: 'ignore' });
+        } catch (_) {}
+    });
+
     const tokenResponse = await fetch(tokenUrl);
     assert.equal(tokenResponse.status, 200);
     const { token } = await tokenResponse.json();
@@ -166,7 +175,7 @@ test('submit endpoint accepts and validates a fully formed feedback payload', as
         completed: 'yes',
         ease_rating: 4,
         difficulty: 'search',
-        comment: 'Väga mugav ja kiire teenus.',
+        comment: testMarker,
         page_group: 'eservices'
     });
 
