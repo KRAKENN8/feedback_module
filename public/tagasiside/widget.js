@@ -279,10 +279,28 @@
         hp.setAttribute('aria-hidden', 'true');
         m.append(hp);
 
-        const er = el('p', { className: 'lf-err' });
+        const er = el('div', { className: 'lf-err' });
         er.setAttribute('role', 'alert');
         er.setAttribute('aria-live', 'polite');
         m.append(er);
+
+        const setError = msg => {
+            if (!msg) {
+                er.replaceChildren();
+                er.style.display = 'none';
+                return;
+            }
+            const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            iconSvg.setAttribute('viewBox', '0 0 20 20');
+            iconSvg.setAttribute('width', '18');
+            iconSvg.setAttribute('height', '18');
+            iconSvg.setAttribute('aria-hidden', 'true');
+            iconSvg.setAttribute('class', 'lf-err-icon');
+            iconSvg.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z" fill="currentColor"/>';
+            const span = el('span', { textContent: msg });
+            er.replaceChildren(iconSvg, span);
+            er.style.display = 'flex';
+        };
 
         const sb = el('button', {
             type: 'submit',
@@ -315,12 +333,12 @@
             const v = k => (m.querySelector(`input[name=${k}]:checked`) || {}).value;
 
             if (!v('purpose') || !v('completed') || !v('ease_rating')) {
-                er.textContent = t(X.req);
+                setError(t(X.req));
                 return;
             }
 
             sb.disabled = true;
-            er.textContent = '';
+            setError('');
 
             const body = {
                 token,
@@ -357,16 +375,16 @@
                     ok.focus();
                 } else {
                     if (r.status === 429) {
-                        er.textContent = t(X.rate);
+                        setError(t(X.rate));
                     } else if (r.status === 409) {
-                        er.textContent = t(X.dup);
+                        setError(t(X.dup));
                         fetch(base + 'token.php', { cache: 'no-store' })
                             .then(r => r.json())
                             .then(j => token = j.token)
                             .catch(() => {});
                         sb.disabled = false;
                     } else {
-                        er.textContent = t(X.er);
+                        setError(t(X.er));
                         fetch(base + 'token.php', { cache: 'no-store' })
                             .then(r => r.json())
                             .then(j => token = j.token)
@@ -375,7 +393,7 @@
                     }
                 }
             } catch (x) {
-                er.textContent = t(X.er);
+                setError(t(X.er));
                 sb.disabled = false;
             }
         };

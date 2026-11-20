@@ -34,7 +34,10 @@
 
             <form method="post" class="login-form">
                 <?php if ($loginError): ?>
-                    <p class="alert" id="login-error" role="alert"><?= $h($T['login_error']) ?></p>
+                    <p class="alert" id="login-error" role="alert">
+                        <svg class="alert-icon" width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-4a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/></svg>
+                        <span><?= $h($T['login_error']) ?></span>
+                    </p>
                 <?php endif; ?>
                 <input type="hidden" name="csrf" value="<?= $h($csrf) ?>">
                 <label for="admin-password"><?= $h($T['password']) ?></label>

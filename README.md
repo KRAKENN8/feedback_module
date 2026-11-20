@@ -38,7 +38,19 @@
    ```powershell
    powershell -ExecutionPolicy Bypass -File bin/test.ps1
    ```
-   Скрипт автоматически проверит синтаксис всех PHP-файлов, статус Redis, выполнит 22 unit-теста виджета и 18 интеграционных проверок API, Redis и безопасности административной панели. Тест реальной записи в БД по умолчанию безопасно пропускается (`LIMIS_TEST_ALLOW_WRITE=1`), чтобы не засорять базу фиктивными отзывами.
+   Скрипт автоматически проверит синтаксис всех PHP-файлов, статус Redis, выполнит 22 unit-теста виджета и 18 интеграционных проверок API, Redis и безопасности административной панели.
+
+   *Для сквозной проверки реальной записи в тестовую БД MariaDB:*
+   ```powershell
+   $env:LIMIS_TEST_ALLOW_WRITE = "1"
+   powershell -ExecutionPolicy Bypass -File bin/test.ps1
+   Remove-Item Env:\LIMIS_TEST_ALLOW_WRITE
+   ```
+
+   *Для быстрой очистки тестовых данных в любой момент:*
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File bin/test.ps1 -Clean
+   ```
 
 6. **Запустите локальный PHP-сервер:**
    ```sh
