@@ -1,4 +1,6 @@
 config/config.php
+bin/test.local.ps1
+.env
 *.bak
 *.swp
 *.old

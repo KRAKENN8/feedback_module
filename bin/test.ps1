@@ -10,6 +10,13 @@ $ErrorActionPreference = "Stop"
 
 # 1. Поиск PHP
 if (-not $PhpPath) {
+    $localCfg = Join-Path $PSScriptRoot "test.local.ps1"
+    if (Test-Path $localCfg) {
+        . $localCfg
+    }
+}
+
+if (-not $PhpPath) {
     $candidates = @(
         $env:PHP_BINARY,
         $env:PHP_BIN,
