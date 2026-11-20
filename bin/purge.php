@@ -1,5 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * CLI-скрипт регламентной очистки устаревших данных (ТЗ № LIMIS-FEEDBACK-01).
+ *
+ * Выполняет:
+ * - Удаление ответов жителей старше 180 дней (требование минимизации и ограничения сроков хранения GDPR).
+ * - Удаление истёкших записей rate-limit guard (MariaDB fallback).
+ * - Удаление истёкших одноразовых токенов nonce.
+ * - Защиту от параллельного запуска через консультативную блокировку GET_LOCK('limis-feedback-purge', 0).
+ *
+ * Рекомендуемый запуск: через cron раз в сутки (например, 03:00).
+ */
+
 require __DIR__ . '/../src/bootstrap.php';
 
 try {
@@ -14,8 +28,11 @@ try {
     }
 
     try {
+        // Очистка ответов старше 180 дней
         $answers = $d->exec('DELETE FROM limis_tagasiside WHERE created_at<DATE_SUB(NOW(),INTERVAL 180 DAY)');
+        // Очистка истёкших записей лимитера MariaDB
         $guards = $d->exec('DELETE FROM limis_tagasiside_guard WHERE expires_at<NOW()');
+        // Очистка истёкших одноразовых токенов
         $nonces = $d->exec('DELETE FROM limis_tagasiside_nonce WHERE expires_at<NOW()');
 
         printf(

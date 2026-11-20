@@ -1,9 +1,26 @@
+<?php
+/**
+ * Шаблон панели мониторинга отзывов администратора (роль Peakasutaja).
+ *
+ * @var string   $ui          Язык интерфейса ('et' или 'ru')
+ * @var array    $T           Словарь переводов
+ * @var string   $csrf        CSRF-токен текущей сессии
+ * @var int      $days        Выбранный период в днях (7, 30, 90, 180)
+ * @var string   $lang        Выбранный фильтр языка отзыва ('', 'et', 'ru')
+ * @var int      $tot         Общее количество ответов за период
+ * @var float|null $avg       Средняя оценка удобства использования
+ * @var callable $bars        Генератор горизонтальных графиков распределения
+ * @var callable $dist        Выборка распределения по столбцу
+ * @var array    $comments    Список последних текстовых отзывов
+ * @var callable $h           Функция экранирования HTML
+ */
+?>
 <!doctype html>
 <html lang="<?= $h($ui) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#123c70">
+    <meta name="theme-color" content="#183F68">
     <title><?= $h($T['dashboard_title']) ?> · LIMIS</title>
     <link rel="stylesheet" href="/admin/tagasiside.css">
     <script src="/admin/tagasiside.js" defer></script>

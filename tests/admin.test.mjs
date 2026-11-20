@@ -1,3 +1,13 @@
+/**
+ * Тесты безопасности и функциональности панели администратора (tagasiside.php).
+ *
+ * Проверяют:
+ * - Защиту от CSV Formula Injection при экспорте.
+ * - Ограничение доступа неавторизованным пользователям (403 Forbidden).
+ * - Авторизацию по паролю в standalone-режиме и защиту от CSRF.
+ * - Проверку роли Peakasutaja в AdminAuth и блокировку обычной роли kasutaja (403 Forbidden).
+ */
+
 import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
 import test from 'node:test';

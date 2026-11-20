@@ -1,3 +1,16 @@
+/**
+ * Модульные тесты JavaScript виджета обратной связи (widget.js).
+ *
+ * Проверяют:
+ * - Иерархию определения ключа страницы (data-page-key -> ?p= -> pathname).
+ * - Восстановление и устойчивость к недоступности localStorage.
+ * - Логику автоприглашения (таймер 45 сек, 2 уникальные страницы, подавление при скрытом документе).
+ * - Блокировку приглашений при критических операциях (data-critical="1" / LimisFeedback.setCritical).
+ * - Подавление показа на 30 дней после закрытия/отправки.
+ * - Доступность диалога: role="dialog", aria-modal, inert для фона, ловушку клавиши Tab, закрытие по Escape.
+ * - Определение и динамическое переключение языка, синхронизацию с ключом 'language' в localStorage LIMIS.
+ */
+
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';

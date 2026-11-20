@@ -1,9 +1,20 @@
+<?php
+/**
+ * Шаблон экрана 403 Forbidden (недостаточно прав, требуется роль Peakasutaja).
+ *
+ * @var string   $ui          Язык интерфейса ('et' или 'ru')
+ * @var array    $T           Словарь переводов
+ * @var string   $csrf        CSRF-токен сессии
+ * @var string   $activeRole  Текущая активная роль пользователя
+ * @var callable $h           Функция экранирования HTML
+ */
+?>
 <!doctype html>
 <html lang="<?= $h($ui) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#123c70">
+    <meta name="theme-color" content="#183F68">
     <title><?= $h($T['forbidden_title']) ?></title>
     <link rel="stylesheet" href="/admin/tagasiside.css">
 </head>

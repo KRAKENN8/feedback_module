@@ -3,15 +3,33 @@
 declare(strict_types=1);
 
 /**
- * Валидатор входящих данных отзыва жителей по ТЗ № LIMIS-FEEDBACK-01.
+ * Валидатор и нормализатор входящих данных отзыва жителей по ТЗ № LIMIS-FEEDBACK-01.
+ *
+ * Обеспечивает:
+ * - Проверку обязательных полей (lang, purpose, completed, ease_rating).
+ * - Контроль допустимых значений против списков ENUMS.
+ * - Ограничение длины комментария (до 500 символов) и фильтрацию непечатных управляющих символов.
+ * - Нормализацию пустых опциональных строк в null.
  */
 class FeedbackValidator
 {
     /**
      * Валидирует и нормализует входящие поля формы.
      *
-     * @param array<string, mixed> $in
-     * @return array{ok: bool, error?: string, data?: array{lang: string, purpose: string, completed: string, ease_rating: int, difficulty: ?string, comment: ?string, page_group: ?string}}
+     * @param array<string, mixed> $in Необработанные входные данные от клиента
+     * @return array{
+     *     ok: bool,
+     *     error?: string,
+     *     data?: array{
+     *         lang: string,
+     *         purpose: string,
+     *         completed: string,
+     *         ease_rating: int,
+     *         difficulty: ?string,
+     *         comment: ?string,
+     *         page_group: ?string
+     *     }
+     * } Результат валидации с нормализованными данными или кодом ошибки
      */
     public static function validate(array $in): array
     {
@@ -23,6 +41,7 @@ class FeedbackValidator
         $pg = $in['page_group'] ?? null;
         $com = $in['comment'] ?? null;
 
+        // Проверка обязательных полей и их типов
         if (
             !in_array($lang, ENUMS['lang'], true)
             || !in_array($purpose, ENUMS['purpose'], true)
@@ -34,18 +53,22 @@ class FeedbackValidator
             return ['ok' => false, 'error' => 'validation'];
         }
 
+        // Проверка опционального поля сложности
         if ($diff !== null && $diff !== '' && !in_array($diff, ENUMS['difficulty'], true)) {
             return ['ok' => false, 'error' => 'validation'];
         }
 
+        // Проверка опциональной категории страницы
         if ($pg !== null && $pg !== '' && !in_array($pg, ENUMS['page_group'], true)) {
             return ['ok' => false, 'error' => 'validation'];
         }
 
+        // Проверка типа комментария
         if ($com !== null && !is_string($com)) {
             return ['ok' => false, 'error' => 'validation'];
         }
 
+        // Очистка от управляющих символов и проверка длины (максимум 500 символов)
         $com = $com === null ? null : trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $com));
         if ($com !== null && mb_strlen($com) > 500) {
             return ['ok' => false, 'error' => 'too_long'];

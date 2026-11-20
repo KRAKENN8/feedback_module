@@ -1,9 +1,20 @@
+<?php
+/**
+ * Шаблон экрана входа администратора (автономный режим / standalone).
+ *
+ * @var string $ui          Язык интерфейса ('et' или 'ru')
+ * @var array  $T           Словарь локализации
+ * @var string $csrf        CSRF-токен сессии
+ * @var bool   $loginError  Флаг ошибки авторизации
+ * @var callable $h         Функция экранирования HTML
+ */
+?>
 <!doctype html>
 <html lang="<?= $h($ui) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#123c70">
+    <meta name="theme-color" content="#183F68">
     <title><?= $h($T['login_title']) ?></title>
     <link rel="stylesheet" href="/admin/tagasiside.css">
     <script src="/admin/tagasiside.js" defer></script>

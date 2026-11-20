@@ -1,3 +1,15 @@
+/**
+ * Встраиваемый виджет обратной связи жителей для системы LIMIS (ТЗ № LIMIS-FEEDBACK-01).
+ *
+ * Возможности:
+ * - Автономная работа без внешних зависимостей (чистый JS/CSS).
+ * - Определение языка: URL (?lang=ru|et) -> data-lang -> localStorage('language') -> <html> lang -> 'et'.
+ * - Синхронизация языка с ключом 'language' в localStorage LIMIS.
+ * - Умное автоприглашение: показ после 45 секунд и 2 уникальных страниц (настраиваемо).
+ * - Подавление показа на 30 дней после закрытия/отправки и блокировка при критических операциях.
+ * - Доступность WCAG/EN 301 549: aria-modal, ловушка фокуса Tab, inert для фона, закрытие по Escape.
+ * - Публичный JavaScript API: window.LimisFeedback (setCritical, setPage, setLanguage, getLanguage).
+ */
 (() => {
     const S = document.currentScript;
     const D = S ? S.dataset : {};
@@ -125,13 +137,18 @@
         priv: ['Andmekaitsetingimused', 'Условия защиты данных']
     };
 
-    const K = 'lf_until';
-    const P = 'lf_pages';
-    const M = 'lf_ms';
+    // Ключи локального хранилища (localStorage)
+    const K = 'lf_until'; // Временная метка подавления автоприглашений (на 30 дней)
+    const P = 'lf_pages'; // Набор посещённых уникальных страниц
+    const M = 'lf_ms';    // Накопленное активное время на страницах в миллисекундах
 
+    // Подавление автоприглашения на 30 дней после отправки или закрытия
     const sup = () => ls.set(K, String(Date.now() + 30 * 864e5));
     const suppressed = () => +ls.get(K) > Date.now();
 
+    /**
+     * Вспомогательный конструктор DOM-элементов.
+     */
     const el = (tag, a = {}, kids = []) => {
         const e = document.createElement(tag);
         Object.assign(e, a);
@@ -145,6 +162,10 @@
     let last = null;
     let inertNodes = [];
 
+    /**
+     * Переводит фоновые элементы страницы в состояние inert при открытом модальном окне,
+     * предотвращая взаимодействие и чтение фонового контента ассистивными технологиями.
+     */
     const setBackgroundInert = (active, overlay) => {
         try {
             if (active) {

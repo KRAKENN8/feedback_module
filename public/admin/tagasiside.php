@@ -2,6 +2,17 @@
 
 declare(strict_types=1);
 
+/**
+ * Панель администрирования отзывов LIMIS (ТЗ № LIMIS-FEEDBACK-01).
+ *
+ * Обеспечивает:
+ * - Проверку прав доступа: исключительно для роли Peakasutaja.
+ * - Поддержку режимов авторизации: штатный LIMIS ($_SESSION['active_role']) и автономный (standalone по паролю).
+ * - Фильтрацию данных по временным интервалам (7, 30, 90, 180 дней) и языку отзыва.
+ * - Расчёт ключевых метрик: общее число ответов, средняя оценка, распределения по категориям.
+ * - Защищённый экспорт в CSV (экранирование формул, разделитель ';', UTF-8 с BOM).
+ */
+
 require __DIR__ . '/../../src/bootstrap.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -19,9 +30,13 @@ $_SESSION['ui'] = $ui;
 $translations = require __DIR__ . '/../../src/i18n/admin.php';
 $T = $translations[$ui];
 
+/**
+ * Безопасное экранирование строк для вывода в HTML.
+ */
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(16));
 
+// Обработка выхода из сессии
 if (isset($_POST['logout']) && hash_equals($csrf, (string)($_POST['csrf'] ?? ''))) {
     $logoutUi = $ui;
     AdminAuth::logout();
@@ -30,7 +45,7 @@ if (isset($_POST['logout']) && hash_equals($csrf, (string)($_POST['csrf'] ?? '')
     exit;
 }
 
-// DEMO-авторизация (в режиме standalone)
+// Авторизация администратора по паролю (в автономном режиме / standalone)
 if (AdminAuth::getAuthMode() === 'standalone' && isset($_POST['password'])) {
     if (
         hash_equals($csrf, (string)($_POST['csrf'] ?? ''))
@@ -38,8 +53,7 @@ if (AdminAuth::getAuthMode() === 'standalone' && isset($_POST['password'])) {
         && password_verify((string)$_POST['password'], cfg()['admin_hash'])
     ) {
         session_regenerate_id(true);
-        $role = (string)($_POST['simulate_role'] ?? AdminAuth::ROLE_PEAKASUTAJA);
-        AdminAuth::setSessionRole($role);
+        AdminAuth::setSessionRole(AdminAuth::ROLE_PEAKASUTAJA);
         $_SESSION['csrf'] = bin2hex(random_bytes(16));
         header('Location: tagasiside.php');
         exit;
@@ -68,28 +82,36 @@ if (!AdminAuth::isPeakasutaja()) {
     exit;
 }
 
+// Параметры фильтрации: период в днях
 $days = (int)($_GET['days'] ?? 30);
 if (!in_array($days, [7, 30, 90, 180], true)) {
     $days = 30;
 }
 
+// Параметры фильтрации: язык ответа
 $lang = in_array($_GET['lang'] ?? '', ['et', 'ru'], true) ? $_GET['lang'] : '';
 $w = 'created_at>=DATE_SUB(NOW(),INTERVAL ' . $days . ' DAY)' . ($lang ? ' AND lang=?' : '');
 $a = $lang ? [$lang] : [];
 
+/**
+ * Подготовленный SQL-запрос с автоматическим выполнением.
+ */
 $q = function (string $sql, array $p = []) {
     $s = db()->prepare($sql);
     $s->execute($p);
     return $s;
 };
 
+// Экспорт отзывов в формате CSV
 if (isset($_GET['csv'])) {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=tagasiside.csv');
 
     $o = fopen('php://output', 'w');
+    // Добавление UTF-8 BOM для корректного открытия в Excel
     fwrite($o, "\xEF\xBB\xBF");
 
+    // Защита от CSV Formula Injection: экранирование символов '=', '+', '-', '@', '\t', '\r'
     $safe = fn($v) => ($v !== null && preg_match('/^[=+\-@\t\r]/', (string)$v)) ? "'" . $v : $v;
 
     fputcsv($o, ['id', 'created_at', 'lang', 'purpose', 'completed', 'ease_rating', 'difficulty', 'comment', 'page_group'], ';', '"', '');
@@ -99,11 +121,16 @@ if (isset($_GET['csv'])) {
     exit;
 }
 
+// Агрегированные метрики для дашборда
 $tot = (int)$q("SELECT COUNT(*) FROM limis_tagasiside WHERE $w", $a)->fetchColumn();
 $avg = $q("SELECT ROUND(AVG(ease_rating),2) FROM limis_tagasiside WHERE $w", $a)->fetchColumn();
 
+// Распределение ответов по категориальным столбцам
 $dist = fn($col) => $q("SELECT $col k,COUNT(*) n FROM limis_tagasiside WHERE $w AND $col IS NOT NULL GROUP BY $col ORDER BY n DESC", $a)->fetchAll(PDO::FETCH_KEY_PAIR);
 
+/**
+ * Генератор горизонтальных полос статистики для дашборда.
+ */
 $bars = function (array $d, int $t, string $type) use ($h, $T) {
     $o = '';
     foreach ($d as $k => $n) {
@@ -116,5 +143,6 @@ $bars = function (array $d, int $t, string $type) use ($h, $T) {
     return $o ?: '<p class="empty-state">' . $h($T['no_responses']) . '</p>';
 };
 
+// Выборка последних текстовых комментариев
 $comments = $q("SELECT created_at,lang,ease_rating,comment FROM limis_tagasiside WHERE $w AND comment IS NOT NULL ORDER BY id DESC LIMIT 100", $a)->fetchAll(PDO::FETCH_ASSOC);
 require __DIR__ . '/tagasiside-dashboard.view.php';

@@ -2,16 +2,38 @@
 
 declare(strict_types=1);
 
+/**
+ * Инициализация и системные функции модуля обратной связи LIMIS (ТЗ № LIMIS-FEEDBACK-01).
+ *
+ * Содержит:
+ * - Загрузку конфигурации (`cfg()`).
+ * - Управление подключением к Redis (`redis()`).
+ * - Безопасное определение IP-клиента с учётом доверенных прокси (`client_ip()`).
+ * - Подключение к базе данных MariaDB (`db()`).
+ * - Генерацию и валидацию stateless HMAC-токенов (`make_token()`, `verify_token()`).
+ * - Списки допустимых значений полей формы (`ENUMS`).
+ */
+
 require_once __DIR__ . '/RedisClient.php';
 require_once __DIR__ . '/FeedbackValidator.php';
 require_once __DIR__ . '/AdminAuth.php';
 
+/**
+ * Загрузка конфигурационного массива модуля.
+ *
+ * @return array<string, mixed>
+ */
 function cfg(): array
 {
     static $c;
     return $c ??= require (getenv('LF_CONFIG') ?: __DIR__ . '/../config/config.php');
 }
 
+/**
+ * Получение синглтон-клиента Redis при условии, что Redis включён в конфигурации.
+ *
+ * @return RedisClient|null Клиент Redis либо null, если Redis отключён
+ */
 function redis(): ?RedisClient
 {
     static $r;
@@ -32,6 +54,14 @@ function redis(): ?RedisClient
     return $r = new RedisClient($host, $port, $timeout, $auth);
 }
 
+/**
+ * Определение IP-адреса клиента с поддержкой доверенных reverse-прокси.
+ *
+ * Заголовки X-Forwarded-For и X-Real-IP учитываются только в том случае,
+ * если прямой адрес подключения ($_SERVER['REMOTE_ADDR']) входит в список 'trusted_proxies'.
+ *
+ * @return string IP-адрес клиента
+ */
 function client_ip(): string
 {
     $remote = (string)($_SERVER['REMOTE_ADDR'] ?? '');
@@ -54,6 +84,11 @@ function client_ip(): string
     return $remote;
 }
 
+/**
+ * Получение PDO-соединения с базой данных MariaDB.
+ *
+ * @return PDO
+ */
 function db(): PDO
 {
     static $p;
@@ -68,7 +103,12 @@ function db(): PDO
     );
 }
 
-// Stateless CSRF-токен для анонимов (без PHP-сессии): nonce.ts.hmac
+/**
+ * Генерация stateless HMAC-токена для анонимных пользователей (без создания PHP-сессии).
+ * Формат токена: nonce.timestamp.hmac_sha256
+ *
+ * @return string
+ */
 function make_token(): string
 {
     $n = bin2hex(random_bytes(16));
@@ -76,6 +116,16 @@ function make_token(): string
     return "$n.$t." . hash_hmac('sha256', "$n.$t", cfg()['secret']);
 }
 
+/**
+ * Проверка stateless HMAC-токена.
+ *
+ * Проверяет целостность подписи HMAC и временное окно:
+ * - Минимальный возраст: 2 секунды (защита от ботов, отправляющих форму мгновенно).
+ * - Максимальный возраст: 7200 секунд (2 часа).
+ *
+ * @param string $tok Строка токена
+ * @return string|null 32-значный nonce токена при успешной проверке либо null
+ */
 function verify_token(string $tok): ?string
 {
     $p = explode('.', $tok);
@@ -96,6 +146,9 @@ function verify_token(string $tok): ?string
     return ($age >= 2 && $age <= 7200) ? $n : null;
 }
 
+/**
+ * Списки допустимых значений полей формы по ТЗ № LIMIS-FEEDBACK-01.
+ */
 const ENUMS = [
     'lang' => ['et', 'ru'],
     'purpose' => ['eservices', 'procurement', 'property', 'account', 'appointment', 'other'],

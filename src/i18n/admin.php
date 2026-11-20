@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * Словари локализации панели администратора tagasiside (эстонский и русский языки).
+ * Включают тексты форм авторизации, экрана 403 Forbidden, фильтров и значений диаграмм.
+ */
+
 return [
     'et' => [
         'login_title' => 'Tagasiside haldus · LIMIS',

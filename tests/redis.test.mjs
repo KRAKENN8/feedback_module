@@ -1,3 +1,12 @@
+/**
+ * Тесты интеграции с Redis для подсистемы Rate Limiting (ТЗ № LIMIS-FEEDBACK-01).
+ *
+ * Проверяют:
+ * - Атомарность и уникальность резерваций rate limit через Lua-скрипт.
+ * - Возможность отката (release) резервации.
+ * - Поведение fail-closed при недоступности настроенного Redis-сервера (503 rate_unavailable).
+ */
+
 import assert from 'node:assert/strict';
 import { createServer } from 'node:net';
 import { execFileSync, spawn } from 'node:child_process';

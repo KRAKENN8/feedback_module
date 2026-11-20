@@ -3,18 +3,39 @@
 declare(strict_types=1);
 
 /**
- * Легковесный клиент Redis на PHP-сокетах (RESP протокол).
- * Не требует php_redis.dll или внешних библиотек.
+ * Легковесный клиент Redis на низкоуровневых PHP-сокетах (протокол RESP).
+ *
+ * Не требует расширения php_redis или внешних библиотек.
+ * Реализует:
+ * - Подключение по TCP с тайм-аутом и опциональной аутентификацией (AUTH).
+ * - Сериализацию команд и парсинг типов ответов RESP (+, -, :, $, *).
+ * - Атомарный rate limiting через Lua-скрипты в Redis (reserveRateLimit, releaseRateLimit).
  */
 class RedisClient
 {
-    /** @var resource|null */
+    /** @var resource|null Дескриптор сокета подключения к Redis */
     private $fp = null;
+
+    /** @var string Хост сервера Redis */
     private string $host;
+
+    /** @var int Порт сервера Redis */
     private int $port;
+
+    /** @var float Тайм-аут подключения и операций ввода-вывода в секундах */
     private float $timeout;
+
+    /** @var string|null Пароль авторизации Redis (AUTH) */
     private ?string $auth;
 
+    /**
+     * Конструктор клиента Redis.
+     *
+     * @param string      $host    Хост (по умолчанию 127.0.0.1)
+     * @param int         $port    Порт (по умолчанию 6379)
+     * @param float       $timeout Тайм-аут в секундах
+     * @param string|null $auth    Пароль доступа
+     */
     public function __construct(
         string $host = '127.0.0.1',
         int $port = 6379,
@@ -28,6 +49,11 @@ class RedisClient
         $this->connect();
     }
 
+    /**
+     * Установка TCP-соединения с сервером Redis.
+     *
+     * @throws RuntimeException В случае ошибки соединения или сбоя аутентификации
+     */
     private function connect(): void
     {
         $errno = 0;
@@ -55,6 +81,13 @@ class RedisClient
         }
     }
 
+    /**
+     * Отправка команды Redis в формате RESP и получение результата.
+     *
+     * @param string ...$args Аргументы команды (например, 'SET', 'key', 'value')
+     * @return mixed Ответ сервера Redis (строка, целое число, массив или null)
+     * @throws RuntimeException При ошибке записи или сбое сокета
+     */
     public function cmd(string ...$args): mixed
     {
         if (!$this->fp) {
@@ -80,6 +113,13 @@ class RedisClient
         return $this->parseResponse();
     }
 
+    /**
+     * Чтение точного количества байтов из сокета.
+     *
+     * @param int $length Необходимое количество байт
+     * @return string Прочитанные данные
+     * @throws RuntimeException При преждевременном разрыве соединения
+     */
     private function readBytes(int $length): string
     {
         $data = '';
@@ -95,6 +135,12 @@ class RedisClient
         return $data;
     }
 
+    /**
+     * Парсинг ответа RESP из сокета.
+     *
+     * @return mixed
+     * @throws RuntimeException При синтаксической ошибке протокола или сообщении об ошибке от Redis
+     */
     private function parseResponse(): mixed
     {
         $line = @fgets($this->fp);
@@ -146,9 +192,19 @@ class RedisClient
     }
 
     /**
-     * Резервирует уникальную заявку в атомарном окне rate limit.
+     * Резервирует уникальную заявку (nonce) в атомарном окне rate limit.
      *
+     * Использует множество (SET) и Lua-скрипт, что гарантирует:
+     * - Атомарность проверки лимита и резервирования места.
+     * - Идемпотентность повторных отправок с тем же nonce.
+     * - Автоматический откат при превышении порога ($max).
+     *
+     * @param string $key    Ключ rate limit в Redis
+     * @param string $member Уникальный идентификатор отправки (nonce токена)
+     * @param int    $max    Максимальное число отправок за период (по умолчанию 3)
+     * @param int    $ttl    Время жизни окна в секундах (по умолчанию 3600)
      * @return array{allowed: bool, count: int, ttl: int, reserved: bool}
+     * @throws InvalidArgumentException При невалидных аргументах
      */
     public function reserveRateLimit(string $key, string $member, int $max = 3, int $ttl = 3600): array
     {
@@ -183,6 +239,13 @@ class RedisClient
         ];
     }
 
+    /**
+     * Освобождает зарезервированную попытку (например, при ошибке валидации или дубликате в БД).
+     *
+     * @param string $key    Ключ rate limit в Redis
+     * @param string $member Уникальный идентификатор отправки (nonce)
+     * @return bool true, если запись была удалена из множества
+     */
     public function releaseRateLimit(string $key, string $member): bool
     {
         $script = '
@@ -196,11 +259,19 @@ class RedisClient
         return (int)$this->cmd('EVAL', $script, '1', $key, $member) === 1;
     }
 
+    /**
+     * Проверка работоспособности соединения (PING).
+     *
+     * @return string Ожидается 'PONG'
+     */
     public function ping(): string
     {
         return (string)$this->cmd('PING');
     }
 
+    /**
+     * Закрытие сокета соединения.
+     */
     public function close(): void
     {
         if ($this->fp) {
@@ -209,6 +280,9 @@ class RedisClient
         }
     }
 
+    /**
+     * Автоматическое закрытие сокета при уничтожении объекта.
+     */
     public function __destruct()
     {
         $this->close();

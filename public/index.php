@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/**
+ * Демонстрационная страница электронных услуг города Нарва (LIMIS Host Page).
+ *
+ * Демонстрирует:
+ * - Встраивание виджета tagasiside/widget.js в принимающий сайт.
+ * - Переключение языков (ET / RU) с поддержкой URL ?lang= и синхронизацией в localStorage.
+ * - Работу флага data-critical="1" на странице подачи заявления (Esita taotlus / apply).
+ * - Настройку таймеров автоприглашения и минимального числа страниц.
+ */
+
 $lang = ($_GET['lang'] ?? 'et') === 'ru' ? 'ru' : 'et';
 $pages = ['home', 'eservices', 'procurement', 'property', 'account', 'appointment', 'apply'];
 $page = in_array($_GET['p'] ?? '', $pages, true) ? $_GET['p'] : 'home';

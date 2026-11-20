@@ -329,7 +329,7 @@ select:hover,
 
 .summary-primary {
     color: #fff;
-    background: linear-gradient(120deg, #123c70, #1d6195);
+    background: linear-gradient(120deg, var(--navy), var(--blue));
     border-color: transparent;
 }
 
@@ -517,7 +517,7 @@ select:hover,
     min-height: 100vh;
     background:
         radial-gradient(ellipse at 18% 0%, rgba(80, 145, 183, .28), transparent 38%),
-        linear-gradient(145deg, #123c70 0%, #174e7a 48%, #eff4f6 48%, #f3f6f8 100%);
+        linear-gradient(145deg, var(--navy) 0%, var(--blue) 48%, #eef4f8 48%, var(--canvas) 100%);
 }
 
 .login-shell {

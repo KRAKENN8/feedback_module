@@ -1,3 +1,9 @@
+-- Миграция установки таблиц модуля обратной связи LIMIS (ТЗ № LIMIS-FEEDBACK-01)
+-- Создает:
+-- 1. limis_tagasiside: основная таблица хранения отзывов жителей (хранение 180 дней).
+-- 2. limis_tagasiside_guard: резервный ограничитель частоты отправки при отключённом Redis.
+-- 3. limis_tagasiside_nonce: учёт одноразовых токенов для предотвращения повторных отправок.
+
 CREATE TABLE limis_tagasiside (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
