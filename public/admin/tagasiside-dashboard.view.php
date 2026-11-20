@@ -152,7 +152,7 @@
             <?php endif; ?>
         </section>
 
-        <footer class="dashboard-footer"><?= $h($T['demo_footer']) ?></footer>
+        <footer class="dashboard-footer"><?= $h($T['product_footer']) ?></footer>
     </main>
 </body>
 </html>

@@ -175,11 +175,11 @@
         const cl = el('label', {
             htmlFor: 'lf-c',
             textContent: t(X.c),
-            style: 'font-weight:600'
+            className: 'lf-comment-label'
         });
         const wr = el('p', {
             textContent: t(X.w),
-            style: 'font-size:14px;margin:.2rem 0'
+            className: 'lf-warning'
         });
         wr.id = 'lf-w';
         const counter = el('p', { id: 'lf-count', className: 'lf-count' });
@@ -310,10 +310,22 @@
         m.querySelector('input').focus();
     }
 
-    const pages = new Set(JSON.parse(ls.get(P) || '[]'));
-    const page = new URL(location.href).searchParams.get('p') || D.page || location.pathname;
-    pages.add(page);
-    ls.set(P, JSON.stringify([...pages]));
+    let pages;
+    try {
+        const storedPages = JSON.parse(ls.get(P) || '[]');
+        pages = new Set(Array.isArray(storedPages) ? storedPages.filter(page => typeof page === 'string') : []);
+    } catch (e) {
+        pages = new Set();
+    }
+
+    const addPage = key => {
+        if (typeof key !== 'string' || !key.trim()) return;
+        pages.add(key.trim().slice(0, 200));
+        ls.set(P, JSON.stringify([...pages]));
+    };
+
+    const page = D.pageKey || new URL(location.href).searchParams.get('p') || location.pathname;
+    addPage(page);
 
     // Автоприглашение: две разные страницы и 45 секунд активности, если оно не подавлено и нет важной операции.
     setInterval(() => {
@@ -338,13 +350,13 @@
                     hideInv();
                     sup();
                 },
-                style: 'margin-left:.4rem'
+                className: 'lf-inv-dismiss'
             });
 
             inv.append(
                 el('p', {
                     textContent: t(X.h),
-                    style: 'margin:0 0 .5rem;font-weight:600'
+                    className: 'lf-inv-title'
                 }),
                 o,
                 d
@@ -360,6 +372,6 @@
             hideInv();
         }
     };
-    window.LimisFeedback = { setCritical: set };
+    window.LimisFeedback = { setCritical: set, setPage: addPage };
     addEventListener('limis-feedback:critical', e => set(e.detail && e.detail.active));
 })();

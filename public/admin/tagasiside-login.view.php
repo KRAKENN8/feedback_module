@@ -65,7 +65,7 @@
             <p class="login-note"><?= $h($T['authorized_only']) ?></p>
         </section>
 
-        <p class="login-footer"><?= $h($T['demo_footer']) ?></p>
+        <p class="login-footer"><?= $h($T['product_footer']) ?></p>
     </main>
 </body>
 </html>

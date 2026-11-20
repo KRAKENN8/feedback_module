@@ -103,6 +103,15 @@
     font: inherit;
 }
 
+.lf-m .lf-comment-label {
+    font-weight: 600;
+}
+
+.lf-m .lf-warning {
+    margin: .2rem 0;
+    font-size: 14px;
+}
+
 .lf-m .lf-count {
     margin: .25rem 0 0;
     color: #555;
@@ -130,6 +139,15 @@
     background: #fff;
     color: #1a56a0;
     cursor: pointer;
+}
+
+.lf-inv .lf-inv-title {
+    margin: 0 0 .5rem;
+    font-weight: 600;
+}
+
+.lf-inv .lf-inv-dismiss {
+    margin-left: .4rem;
 }
 
 .lf-m .lf-a button[type=submit],
