@@ -13,7 +13,7 @@ return [
     // 'limis'      - штатный режим LIMIS: проверяет роль $_SESSION['active_role'] или $_SESSION['role'] === 'peakasutaja'
     'auth_mode' => 'standalone',
 
-    // Redis (Rate Limiting по ТЗ № LIMIS-FEEDBACK-01)
+    // Redis (Rate Limiting)
     'redis_enabled' => true,
     'redis_host'    => '127.0.0.1',
     'redis_port'    => 6379,
