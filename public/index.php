@@ -36,6 +36,18 @@ $copy = [
             'apply' => 'Taotluse esitamine',
         ],
         'content' => 'Tutvu teenusega ning leia juhised ja teave, mida vajad järgmise sammu tegemiseks.',
+        'apply_notice_title' => 'Tagasiside hüpikteavitus on sellel lehel välja lülitatud',
+        'apply_notice_text' => 'Kuna sellel lehel toimub andmete sisestamine (kriitiline toiming ja taotluse täitmine), ei kuvata siin hüpikakent ega automaatset kutset, et vältida tähelepanu hajutamist ja poolelioleva sisestamise katkestamist.',
+        'apply_notice_param_label' => 'Rakendatud parameeter:',
+        'apply_notice_param_desc' => 'skriptile on määratud atribuut data-critical="1" (toetatud ka LimisFeedback.setCritical(true) ja sündmus limis-feedback:critical). Püsiv nupp „Hinda LIMIS-t” lehe allservas jääb soovi korral kättesaadavaks.',
+        'apply_form_heading' => 'Taotluse andmete sisestamine',
+        'apply_form_intro' => 'Täitke allolevad väljad taotluse esitamiseks. Sisestamise ajal ei segata teid hüpikteavitustega.',
+        'apply_field_subject' => 'Taotluse teema või valdkond',
+        'apply_field_subject_placeholder' => 'Nt elukoha registreerimine, toetuse taotlemine...',
+        'apply_field_details' => 'Taotluse sisu või selgitus',
+        'apply_field_details_placeholder' => 'Kirjeldage lühidalt oma taotluse sisu...',
+        'apply_submit_btn' => 'Salvesta ja jätka',
+        'apply_draft_btn' => 'Salvesta mustandina',
     ],
     'ru' => [
         'title' => 'Услуги города Нарвы',
@@ -62,6 +74,18 @@ $copy = [
             'apply' => 'Подача заявления',
         ],
         'content' => 'Ознакомьтесь с услугой и найдите информацию, которая поможет вам сделать следующий шаг.',
+        'apply_notice_title' => 'Всплывающее уведомление опроса на этой странице отключено',
+        'apply_notice_text' => 'Поскольку на этой странице выполняется ввод данных (критическая операция и заполнение заявления), всплывающее окно и автоприглашение намеренно заблокированы, чтобы не отвлекать пользователя и не прерывать процесс ввода.',
+        'apply_notice_param_label' => 'Применённый параметр:',
+        'apply_notice_param_desc' => 'в теге <script> виджета задан атрибут data-critical="1" (также поддерживается вызов LimisFeedback.setCritical(true) и событие limis-feedback:critical). Плавающая кнопка «Оценить LIMIS» внизу страницы остаётся доступной для добровольной отправки.',
+        'apply_form_heading' => 'Ввод данных заявления',
+        'apply_form_intro' => 'Заполните поля ниже для подачи заявления. Во время ввода вас не будут отвлекать всплывающие уведомления.',
+        'apply_field_subject' => 'Тема или сфера заявления',
+        'apply_field_subject_placeholder' => 'Например, регистрация места жительства, ходатайство о пособии...',
+        'apply_field_details' => 'Содержание заявления или пояснение',
+        'apply_field_details_placeholder' => 'Кратко опишите содержание заявления...',
+        'apply_submit_btn' => 'Сохранить и продолжить',
+        'apply_draft_btn' => 'Сохранить как черновик',
     ],
 ];
 
@@ -105,7 +129,53 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
             <?php endforeach; ?>
         </nav>
 
-        <?php if ($page !== 'home'): ?>
+        <?php if ($page === 'apply'): ?>
+            <div class="service-notice service-notice--critical" role="region" aria-label="<?= $h($text['apply_notice_title']) ?>">
+                <div class="service-notice-header">
+                    <span class="service-notice-icon" aria-hidden="true">&#9432;</span>
+                    <strong><?= $h($text['apply_notice_title']) ?></strong>
+                </div>
+                <p><?= $h($text['apply_notice_text']) ?></p>
+                <p class="service-notice-param">
+                    <strong><?= $h($text['apply_notice_param_label']) ?></strong>
+                    <code>data-critical="1"</code>
+                    <span>(<?= $h($text['apply_notice_param_desc']) ?>)</span>
+                </p>
+            </div>
+
+            <section class="service-card service-card--form">
+                <h2><?= $h($text['apply_form_heading']) ?></h2>
+                <p class="form-intro"><?= $h($text['apply_form_intro']) ?></p>
+
+                <form class="demo-apply-form" action="#" method="post" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label for="apply_subject"><?= $h($text['apply_field_subject']) ?></label>
+                        <input
+                            type="text"
+                            id="apply_subject"
+                            name="subject"
+                            class="form-control"
+                            placeholder="<?= $h($text['apply_field_subject_placeholder']) ?>"
+                            autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apply_details"><?= $h($text['apply_field_details']) ?></label>
+                        <textarea
+                            id="apply_details"
+                            name="details"
+                            rows="4"
+                            class="form-control"
+                            placeholder="<?= $h($text['apply_field_details_placeholder']) ?>"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><?= $h($text['apply_submit_btn']) ?></button>
+                        <button type="button" class="btn btn-secondary"><?= $h($text['apply_draft_btn']) ?></button>
+                    </div>
+                </form>
+            </section>
+        <?php elseif ($page !== 'home'): ?>
             <section class="service-card">
                 <h2><?= $h($text['headings'][$page]) ?></h2>
                 <p><?= $h($text['content']) ?></p>
