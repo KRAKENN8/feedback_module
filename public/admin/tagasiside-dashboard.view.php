@@ -20,7 +20,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#183F68">
+    <meta name="theme-color" content="#005aa3">
     <title><?= $h($T['dashboard_title']) ?> · LIMIS</title>
     <link rel="icon" type="image/x-icon" href="https://limis.narva.ee/failid/png/Vapp_0_2.ico">
     <link rel="stylesheet" href="/admin/tagasiside.css">

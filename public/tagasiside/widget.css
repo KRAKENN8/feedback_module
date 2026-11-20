@@ -1,12 +1,24 @@
+:root {
+    --ee-blue: #005aa3;
+    --ee-blue-dark: #003c75;
+    --ee-blue-soft: #eaf4ff;
+    --ee-ink: #1b1f24;
+    --ee-muted: #5b6673;
+    --ee-border: #d8e0e8;
+    --ee-bg: #f5f7fa;
+    --ee-white: #ffffff;
+    --ee-focus: #ffcc00;
+}
+
 .lf-btn {
     box-sizing: border-box;
     position: fixed;
     right: 1rem;
     bottom: 1rem;
     z-index: 900;
-    background: #24578A;
+    background: var(--ee-blue);
     color: #fff;
-    border: 1px solid #24578A;
+    border: 1px solid var(--ee-blue);
     border-radius: 99px;
     padding: .7rem 1.2rem;
     font: 700 15px 'Montserrat', 'Segoe UI', Arial, sans-serif;
@@ -16,15 +28,15 @@
 }
 
 .lf-btn:hover {
-    background: #183F68;
-    border-color: #183F68;
+    background: var(--ee-blue-dark);
+    border-color: var(--ee-blue-dark);
 }
 
 .lf-btn:focus-visible,
 .lf-m button:focus-visible,
 .lf-m input:focus-visible,
 .lf-m textarea:focus-visible {
-    outline: 3px solid #FFD44D;
+    outline: 3px solid var(--ee-focus);
     outline-offset: 3px;
 }
 
@@ -36,9 +48,9 @@
     width: fit-content;
     max-width: min(300px, calc(100vw - 2rem));
     z-index: 900;
-    background: #fff;
-    color: #18324D;
-    border: 1px solid #D6E0EA;
+    background: var(--ee-white);
+    color: var(--ee-ink);
+    border: 1px solid var(--ee-border);
     border-radius: 13px;
     padding: .85rem 1rem;
     font: 14.5px/1.4 'Montserrat', 'Segoe UI', Arial, sans-serif;
@@ -76,8 +88,8 @@
 }
 
 .lf-m {
-    background: #fff;
-    color: #18324D;
+    background: var(--ee-white);
+    color: var(--ee-ink);
     max-width: 560px;
     width: 100%;
     max-height: calc(100vh - 1rem);
@@ -97,7 +109,7 @@
     margin: 0 0 6px;
     font-size: 22px;
     font-weight: 750;
-    color: #18324D;
+    color: var(--ee-ink);
 }
 
 .lf-m h2:focus {
@@ -105,13 +117,13 @@
 }
 
 .lf-m h2:focus-visible {
-    outline: 3px solid #FFD44D;
+    outline: 3px solid var(--ee-focus);
     outline-offset: 3px;
     border-radius: 4px;
 }
 
 .lf-m p {
-    color: #607188;
+    color: var(--ee-muted);
 }
 
 .lf-m fieldset {
@@ -122,14 +134,14 @@
 
 .lf-m legend {
     font-weight: 700;
-    color: #18324D;
+    color: var(--ee-ink);
     margin-bottom: .3rem;
 }
 
 .lf-m label {
     display: block;
     padding: .25rem 0;
-    color: #18324D;
+    color: var(--ee-ink);
     cursor: pointer;
 }
 
@@ -137,32 +149,32 @@
     width: 100%;
     min-height: 5rem;
     font: inherit;
-    color: #18324D;
-    background: #fff;
-    border: 1px solid #D6E0EA;
+    color: var(--ee-ink);
+    background: var(--ee-white);
+    border: 1px solid var(--ee-border);
     border-radius: 8px;
     padding: .6rem;
     transition: border-color .15s ease;
 }
 
 .lf-m textarea:focus {
-    border-color: #24578A;
+    border-color: var(--ee-blue);
 }
 
 .lf-m .lf-comment-label {
     font-weight: 700;
-    color: #18324D;
+    color: var(--ee-ink);
 }
 
 .lf-m .lf-warning {
     margin: .25rem 0;
     font-size: 13.5px;
-    color: #607188;
+    color: var(--ee-muted);
 }
 
 .lf-m .lf-count {
     margin: .25rem 0 0;
-    color: #607188;
+    color: var(--ee-muted);
     font-size: 13px;
     text-align: right;
 }
@@ -185,9 +197,9 @@
     font-weight: 650;
     padding: .65rem 1.1rem;
     border-radius: 9px;
-    border: 1px solid #D6E0EA;
-    background: #fff;
-    color: #24578A;
+    border: 1px solid var(--ee-border);
+    background: var(--ee-white);
+    color: var(--ee-blue-dark);
     cursor: pointer;
     transition: background-color .15s ease, border-color .15s ease;
 }
@@ -195,7 +207,7 @@
 .lf-inv .lf-inv-title {
     margin: 0 0 .5rem;
     font-weight: 700;
-    color: #18324D;
+    color: var(--ee-ink);
 }
 
 .lf-inv .lf-inv-dismiss {
@@ -204,22 +216,22 @@
 
 .lf-m .lf-a button:hover,
 .lf-inv button:hover {
-    background: #FAFCFE;
-    border-color: #9CBAD5;
+    background: var(--ee-blue-soft);
+    border-color: var(--ee-blue);
 }
 
 .lf-m .lf-a button[type=submit],
 .lf-m .lf-a button.lf-primary {
-    background: #24578A;
-    border-color: #24578A;
+    background: var(--ee-blue);
+    border-color: var(--ee-blue);
     color: #fff;
     font-weight: 700;
 }
 
 .lf-m .lf-a button[type=submit]:hover,
 .lf-m .lf-a button.lf-primary:hover {
-    background: #183F68;
-    border-color: #183F68;
+    background: var(--ee-blue-dark);
+    border-color: var(--ee-blue-dark);
 }
 
 .lf-err {
@@ -269,13 +281,13 @@
 }
 
 .lf-priv a {
-    color: #607188;
+    color: var(--ee-muted);
     text-decoration: underline;
 }
 
 .lf-priv a:hover,
 .lf-priv a:focus-visible {
-    color: #24578A;
+    color: var(--ee-blue);
 }
 
 .lf-hp {

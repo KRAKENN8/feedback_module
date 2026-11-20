@@ -107,7 +107,7 @@ $h = fn(string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBS
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#183F68">
+    <meta name="theme-color" content="#005aa3">
     <meta name="description" content="<?= $h($page === 'home' ? $text['description'] : $text['content']) ?>">
     <link rel="icon" type="image/x-icon" href="https://limis.narva.ee/failid/png/Vapp_0_2.ico">
     <title><?= $h($text['headings'][$page]) ?> · LIMIS</title>

@@ -1,15 +1,27 @@
 :root {
     color-scheme: light;
-    --navy: #183F68;
-    --blue: #24578A;
-    --blue-dark: #183F68;
-    --blue-light: #EEF4FB;
-    --green: #64a887;
-    --ink: #18324D;
-    --muted: #607188;
-    --line: #D6E0EA;
-    --surface: #fff;
-    --canvas: #F3F4F7;
+    --ee-blue: #005aa3;
+    --ee-blue-dark: #003c75;
+    --ee-blue-soft: #eaf4ff;
+    --ee-ink: #1b1f24;
+    --ee-muted: #5b6673;
+    --ee-border: #d8e0e8;
+    --ee-bg: #f5f7fa;
+    --ee-white: #ffffff;
+    --ee-focus: #ffcc00;
+
+    /* Aliases */
+    --navy: var(--ee-blue-dark);
+    --blue: var(--ee-blue);
+    --blue-dark: var(--ee-blue-dark);
+    --blue-light: var(--ee-blue-soft);
+    --green: #205d6c;
+    --ink: var(--ee-ink);
+    --muted: var(--ee-muted);
+    --line: var(--ee-border);
+    --surface: var(--ee-white);
+    --canvas: var(--ee-bg);
+    --focus: var(--ee-focus);
     --shadow: 0 12px 36px rgba(13, 35, 59, .08);
 }
 
@@ -19,9 +31,9 @@
 
 body {
     margin: 0;
-    color: var(--ink);
-    background: var(--canvas);
-    font: 15px/1.55 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    color: var(--ee-ink);
+    background: var(--ee-bg);
+    font: 15px/1.55 'Montserrat', 'Lato', Arial, sans-serif;
 }
 
 button,
@@ -31,7 +43,11 @@ select {
 }
 
 a {
-    color: var(--blue);
+    color: var(--ee-blue);
+}
+
+a:hover {
+    color: var(--ee-blue-dark);
 }
 
 .topbar,
@@ -173,28 +189,30 @@ a {
 a:focus-visible,
 input:focus-visible,
 select:focus-visible {
-    outline: 3px solid #FFD44D;
+    outline: 3px solid var(--ee-focus);
     outline-offset: 2px;
 }
 
 .button-primary {
     color: #fff;
-    background: var(--blue);
+    background: var(--ee-blue);
+    border-color: var(--ee-blue);
 }
 
 .button-primary:hover {
-    background: var(--blue-dark);
+    background: var(--ee-blue-dark);
+    border-color: var(--ee-blue-dark);
 }
 
 .button-secondary {
-    color: var(--navy);
-    background: #fff;
-    border-color: var(--line);
+    color: var(--ee-blue-dark);
+    background: var(--ee-white);
+    border-color: var(--ee-border);
 }
 
 .button-secondary:hover {
-    background: var(--blue-light);
-    border-color: #b8cfdf;
+    background: var(--ee-blue-soft);
+    border-color: var(--ee-blue);
 }
 
 .button-quiet {
@@ -328,7 +346,7 @@ select:hover,
 }
 
 .password-toggle:focus-visible {
-    outline: 3px solid #9ed5bc;
+    outline: 3px solid var(--ee-focus);
     outline-offset: 1px;
 }
 
