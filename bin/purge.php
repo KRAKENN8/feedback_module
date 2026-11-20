@@ -7,7 +7,6 @@ declare(strict_types=1);
  *
  * Выполняет:
  * - Удаление ответов жителей старше 180 дней (требование минимизации и ограничения сроков хранения GDPR).
- * - Удаление истёкших записей rate-limit guard (MariaDB fallback).
  * - Удаление истёкших одноразовых токенов nonce.
  * - Защиту от параллельного запуска через консультативную блокировку GET_LOCK('limis-feedback-purge', 0).
  *
@@ -30,16 +29,13 @@ try {
     try {
         // Очистка ответов старше 180 дней
         $answers = $d->exec('DELETE FROM limis_tagasiside WHERE created_at<DATE_SUB(NOW(),INTERVAL 180 DAY)');
-        // Очистка истёкших записей лимитера MariaDB
-        $guards = $d->exec('DELETE FROM limis_tagasiside_guard WHERE expires_at<NOW()');
         // Очистка истёкших одноразовых токенов
         $nonces = $d->exec('DELETE FROM limis_tagasiside_nonce WHERE expires_at<NOW()');
 
         printf(
-            "Cleanup completed. Answers: %d; rate-limit records: %d; token records: %d.\n",
-            $answers,
-            $guards,
-            $nonces
+            "Cleanup completed. Answers: %d; token records: %d.\n",
+            $answers ?: 0,
+            $nonces ?: 0
         );
     } finally {
         $release = $d->prepare('SELECT RELEASE_LOCK(?)');

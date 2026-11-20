@@ -12,11 +12,10 @@ declare(strict_types=1);
  * 4. Проверка подписи HMAC-токена и временного окна 2..7200 сек (иначе 403 Forbidden).
  * 5. Валидация полей через FeedbackValidator (иначе 422 Unprocessable Entity).
  * 6. Ограничение частоты (Rate Limiting) — максимум 3 отправки в час с одного IP:
- *    - По умолчанию через атомарный Lua-скрипт в Redis (reserveRateLimit/releaseRateLimit).
- *    - При отключённом Redis — через блокировку GET_LOCK и таблицу limis_tagasiside_guard в MariaDB.
- *    - При отказе включённого Redis — fail-closed (503 Service Unavailable).
+ *    - Полностью реализуется через атомарный Lua-скрипт в Redis (reserveRateLimit/releaseRateLimit).
+ *    - При сбое или недоступности Redis — безопасный отказ fail-closed (503 Service Unavailable).
  * 7. Атомарная транзакция MariaDB:
- *    - Проверка уникальности nonce (защита от дубликатов / double-submit).
+ *    - Проверка уникальности nonce в таблице limis_tagasiside_nonce (защита от повторной отправки / double-submit).
  *    - Сохранение отзыва в таблицу limis_tagasiside.
  *    - При ошибке транзакции — автоматический откат резервирования в Redis.
  */
@@ -81,31 +80,27 @@ $com = $data['comment'];
 
 // Ключ rate limit на основе HMAC от IP-адреса клиента
 $rk = 'r:' . hash_hmac('sha256', client_ip(), cfg()['secret']);
-$redisEnabled = !empty(cfg()['redis_enabled']);
 $redisKey = 'lf:rate:v2:' . $rk;
 $redisReservation = null;
 
-// 6. Ограничение частоты отправок через Redis (при включённом бэкенде)
-// При включённом Redis отказ backend не должен переключать запросы на отдельный счётчик.
-if ($redisEnabled) {
-    try {
-        $redis = redis();
-        if ($redis === null) {
-            throw new RuntimeException('Redis rate limiter is enabled but unavailable');
-        }
-
-        $rate = $redis->reserveRateLimit($redisKey, $nonce, 3, 3600);
-        if (!$rate['allowed']) {
-            out(429, ['error' => 'rate']);
-        }
-
-        if ($rate['reserved']) {
-            $redisReservation = [$redisKey, $nonce];
-        }
-    } catch (Throwable $e) {
-        error_log('Redis rate limit unavailable: ' . $e->getMessage());
-        out(503, ['error' => 'rate_unavailable']);
+// 6. Ограничение частоты отправок через Redis (3 ответа в час на IP)
+try {
+    $redis = redis();
+    if ($redis === null) {
+        throw new RuntimeException('Redis rate limiter is unavailable');
     }
+
+    $rate = $redis->reserveRateLimit($redisKey, $nonce, 3, 3600);
+    if (!$rate['allowed']) {
+        out(429, ['error' => 'rate']);
+    }
+
+    if ($rate['reserved']) {
+        $redisReservation = [$redisKey, $nonce];
+    }
+} catch (Throwable $e) {
+    error_log('Redis rate limit unavailable: ' . $e->getMessage());
+    out(503, ['error' => 'rate_unavailable']);
 }
 
 /**
@@ -131,19 +126,8 @@ $releaseRedisReservation = static function () use (&$redisReservation): void {
 // 7. Сохранение в базу данных MariaDB
 try {
     $db = db();
-
-    // Если Redis явно отключён, ограничиваем частоту через MariaDB guard и именованную блокировку.
-    $lockName = null;
-    if (!$redisEnabled) {
-        $lockName = 'lf:' . substr($rk, 2, 61);
-        $lock = $db->prepare('SELECT GET_LOCK(?, 5)');
-        $lock->execute([$lockName]);
-        if ((int)$lock->fetchColumn() !== 1) {
-            out(503, ['error' => 'busy']);
-        }
-    }
-
     $response = null;
+
     try {
         $db->beginTransaction();
 
@@ -160,42 +144,22 @@ try {
             $response = [409, ['error' => 'duplicate']];
         }
 
+        // Запись отзыва в постоянную таблицу
         if ($response === null) {
-            // Резервный rate-limit через MariaDB guard (только если Redis выключен)
-            if (!$redisEnabled) {
-                $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
-                $c->execute([$rk]);
-                if ((int)$c->fetchColumn() >= 3) {
-                    $db->rollBack();
-                    $response = [429, ['error' => 'rate']];
-                } else {
-                    $db->prepare('INSERT INTO limis_tagasiside_guard(k,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 1 HOUR))')
-                        ->execute([$rk]);
-                }
-            }
+            $db->prepare('INSERT INTO limis_tagasiside(lang,purpose,completed,ease_rating,difficulty,comment,page_group) VALUES(?,?,?,?,?,?,?)')
+                ->execute([$lang, $purpose, $completed, $rating, $diff, $com, $pg]);
 
-            // Запись отзыва в постоянную таблицу
-            if ($response === null) {
-                $db->prepare('INSERT INTO limis_tagasiside(lang,purpose,completed,ease_rating,difficulty,comment,page_group) VALUES(?,?,?,?,?,?,?)')
-                    ->execute([$lang, $purpose, $completed, $rating, $diff, $com, $pg]);
-
-                $db->commit();
-                $response = [200, ['ok' => true]];
-            }
+            $db->commit();
+            $response = [200, ['ok' => true]];
         }
     } catch (Throwable $e) {
         if ($db->inTransaction()) {
             $db->rollBack();
         }
         throw $e;
-    } finally {
-        if ($lockName !== null) {
-            $release = $db->prepare('SELECT RELEASE_LOCK(?)');
-            $release->execute([$lockName]);
-        }
     }
 
-    // Если ответ не успешный (дубликат или лимит), освобождаем попытку в Redis
+    // Если ответ не успешный (дубликат), освобождаем попытку в Redis
     if ($response[0] !== 200) {
         $releaseRedisReservation();
     } else {
