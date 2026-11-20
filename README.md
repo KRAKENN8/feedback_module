@@ -68,7 +68,7 @@ mariadb limis_feedback_proto < migrations/001_rollback.sql
 
 ## Структура
 
-`public/` — web-root; `src/` — общие PHP-функции; `config/` — секреты; `migrations/` — SQL-схема; `bin/` — CLI-обслуживание; `tests/` — автоматизированные проверки. Описание каждого файла — в [INTEGRATION.md](./INTEGRATION.md).
+`public/` — web-root; `src/` — общие PHP-функции; `config/` — секреты; `migrations/` — SQL-схема; `bin/` — CLI-обслуживание; `tests/` — автоматизированные проверки; `screenshots/` — скриншоты публичного интерфейса и панели администратора (п. 11 ТЗ). Описание каждого файла — в [INTEGRATION.md](./INTEGRATION.md).
 
 ## Проверки и известные ограничения
 
