@@ -26,7 +26,8 @@
     position: fixed;
     left: 1rem;
     bottom: 1rem;
-    max-width: 300px;
+    width: fit-content;
+    max-width: min(300px, calc(100vw - 2rem));
     z-index: 900;
     background: #fff;
     color: #1a1a1a;
@@ -35,6 +36,19 @@
     padding: .8rem;
     font: 15px system-ui;
     box-shadow: 0 2px 8px #0003;
+    animation: lf-invite-enter .24s ease-out both;
+}
+
+@keyframes lf-invite-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .lf-ov {
@@ -136,4 +150,39 @@
 .lf-hp {
     position: absolute;
     left: -9999px;
+}
+
+@media (max-width: 480px) {
+    .lf-btn {
+        right: .75rem;
+        bottom: .75rem;
+        min-height: 44px;
+        padding: .65rem .9rem;
+        font-size: 14px;
+    }
+
+    .lf-inv {
+        left: .75rem;
+        bottom: calc(.75rem + 44px + .5rem);
+        max-width: calc(100vw - 1.5rem);
+        padding: .7rem;
+        font-size: 14px;
+    }
+
+    .lf-inv button {
+        min-height: 44px;
+        padding: .6rem .8rem;
+    }
+
+    .lf-m {
+        padding: 1rem;
+        border-radius: 12px;
+        font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lf-inv {
+        animation: none;
+    }
 }
