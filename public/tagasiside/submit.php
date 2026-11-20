@@ -80,14 +80,35 @@ if ($pg === '') {
     $pg = null;
 }
 
+$rk = 'r:' . hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? '', cfg()['secret']);
+$redisUsed = false;
+
+// 1. Ограничение частоты через Redis по ТЗ № LIMIS-FEEDBACK-01 (не более 3 ответов в час)
+$redis = redis();
+if ($redis !== null) {
+    try {
+        $rate = $redis->rateLimit("lf:rate:$rk", 3, 3600);
+        if (!$rate['allowed']) {
+            out(429, ['error' => 'rate']);
+        }
+        $redisUsed = true;
+    } catch (Throwable $e) {
+        error_log('Redis rate limit check error: ' . $e->getMessage());
+    }
+}
+
 try {
     $db = db();
-    $rk = 'r:' . hash_hmac('sha256', $_SERVER['REMOTE_ADDR'] ?? '', cfg()['secret']);
-    $lockName = 'lf:' . substr($rk, 2, 61);
-    $lock = $db->prepare('SELECT GET_LOCK(?, 5)');
-    $lock->execute([$lockName]);
-    if ((int)$lock->fetchColumn() !== 1) {
-        out(503, ['error' => 'busy']);
+
+    // Если Redis не использовался (отключен или недоступен), используем MariaDB guard с advisory lock
+    $lockName = null;
+    if (!$redisUsed) {
+        $lockName = 'lf:' . substr($rk, 2, 61);
+        $lock = $db->prepare('SELECT GET_LOCK(?, 5)');
+        $lock->execute([$lockName]);
+        if ((int)$lock->fetchColumn() !== 1) {
+            out(503, ['error' => 'busy']);
+        }
     }
 
     $response = null;
@@ -106,15 +127,19 @@ try {
         }
 
         if ($response === null) {
-            $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
-            $c->execute([$rk]);
-            if ((int)$c->fetchColumn() >= 3) {
-                $db->rollBack();
-                $response = [429, ['error' => 'rate']];
-            } else {
-                $db->prepare('INSERT INTO limis_tagasiside_guard(k,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 1 HOUR))')
-                    ->execute([$rk]);
+            if (!$redisUsed) {
+                $c = $db->prepare('SELECT COUNT(*) FROM limis_tagasiside_guard WHERE k=? AND expires_at>NOW()');
+                $c->execute([$rk]);
+                if ((int)$c->fetchColumn() >= 3) {
+                    $db->rollBack();
+                    $response = [429, ['error' => 'rate']];
+                } else {
+                    $db->prepare('INSERT INTO limis_tagasiside_guard(k,expires_at) VALUES(?,DATE_ADD(NOW(),INTERVAL 1 HOUR))')
+                        ->execute([$rk]);
+                }
+            }
 
+            if ($response === null) {
                 $db->prepare('INSERT INTO limis_tagasiside(lang,purpose,completed,ease_rating,difficulty,comment,page_group) VALUES(?,?,?,?,?,?,?)')
                     ->execute([$lang, $purpose, $completed, $rating, $diff, $com, $pg]);
 
@@ -128,8 +153,10 @@ try {
         }
         throw $e;
     } finally {
-        $release = $db->prepare('SELECT RELEASE_LOCK(?)');
-        $release->execute([$lockName]);
+        if ($lockName !== null) {
+            $release = $db->prepare('SELECT RELEASE_LOCK(?)');
+            $release->execute([$lockName]);
+        }
     }
 
     out($response[0], $response[1]);

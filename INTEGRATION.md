@@ -27,19 +27,21 @@
 | `public/admin/tagasiside-login.view.php` | Шаблон входа в административную часть. |
 | `public/admin/tagasiside-dashboard.view.php` | Шаблон статистики и комментариев. |
 | `public/admin/tagasiside.css`, `public/admin/tagasiside.js` | Стили административных страниц и небольшие UI-действия. |
-| `src/bootstrap.php` | Конфигурация, соединение с MariaDB, HMAC-токены и разрешённые значения полей. |
+| `src/bootstrap.php` | Конфигурация, соединение с MariaDB, клиент Redis, HMAC-токены и разрешённые значения полей. |
+| `src/RedisClient.php` | Легковесный сокетный RESP-клиент Redis для атомарного rate limiting без сторонних зависимостей. |
 | `config/config.example.php` | Пример конфигурации. Рабочий `config/config.php` создаётся отдельно и не должен быть доступен через веб. |
 | `migrations/001_install.sql` | Создание таблиц ответов, лимитов и nonce. |
 | `migrations/001_rollback.sql` | Удаление этих таблиц при полном откате модуля. |
 | `bin/purge.php` | Удаление устаревших данных. Запускается из CLI планировщиком. |
 | `bin/seed.php` | Заполнение базы синтетическими строками для разработки; не запускайте на рабочей базе. |
 | `public/index.php`, `public/site.css` | Локальная оболочка для проверки внешнего вида и порогов приглашения. При установке на существующий сайт её заменяет сам сайт. |
-| `tests/api.test.mjs`, `tests/widget.test.mjs`, `tests/admin.test.mjs` | Автоматизированные API-проверки, тесты защиты панели администратора и unit-тесты логики/A11y виджета на встроенном runner Node.js. |
+| `tests/api.test.mjs`, `tests/widget.test.mjs`, `tests/admin.test.mjs`, `tests/redis.test.mjs` | Автоматизированные API-проверки, тесты защиты панели администратора, проверки Redis и unit-тесты логики/A11y виджета на встроенном runner Node.js. |
 
 ## 3. Требования перед установкой
 
 - PHP 8.5 с включённым `pdo_mysql` и `mbstring`.
-- MariaDB 11. Rate limit использует MariaDB `GET_LOCK`; другой тип СУБД текущим кодом не поддерживается.
+- MariaDB 11.
+- Redis (опционально, рекомендуется по ТЗ для кратковременных счётчиков rate limiting 3 ответа/час).
 - HTTPS для публичного сайта.
 - Возможность настроить корень веб-сервера и расписание CLI-задач.
 - Выделенные ответственное лицо за админ-доступ, privacy и безопасность.

@@ -7,4 +7,11 @@ return [
     'db_pass'    => 'change-me',
     'secret'     => 'замените-на-случайные-64-символа', // HMAC для токенов и ключей лимита
     'admin_hash' => '', // php -r "echo password_hash('пароль', PASSWORD_DEFAULT);"
+
+    // Redis (Rate Limiting по ТЗ № LIMIS-FEEDBACK-01)
+    'redis_enabled' => true,
+    'redis_host'    => '127.0.0.1',
+    'redis_port'    => 6379,
+    'redis_pass'    => null,
+    'redis_timeout' => 2.0,
 ];

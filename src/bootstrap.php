@@ -2,10 +2,32 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/RedisClient.php';
+
 function cfg(): array
 {
     static $c;
     return $c ??= require (getenv('LF_CONFIG') ?: __DIR__ . '/../config/config.php');
+}
+
+function redis(): ?RedisClient
+{
+    static $r;
+    if ($r !== null) {
+        return $r;
+    }
+
+    $c = cfg();
+    if (empty($c['redis_enabled'])) {
+        return null;
+    }
+
+    $host = $c['redis_host'] ?? '127.0.0.1';
+    $port = (int)($c['redis_port'] ?? 6379);
+    $auth = !empty($c['redis_pass']) ? (string)$c['redis_pass'] : null;
+    $timeout = (float)($c['redis_timeout'] ?? 2.0);
+
+    return $r = new RedisClient($host, $port, $timeout, $auth);
 }
 
 function db(): PDO

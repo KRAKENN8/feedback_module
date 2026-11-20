@@ -6,6 +6,7 @@
 
 - PHP 8.5 с расширениями `pdo_mysql` и `mbstring`.
 - MariaDB 11.
+- Redis (рекомендуется по ТЗ для rate limiting, поддерживается также Docker `redis:alpine`).
 - HTTPS и отдельная база данных для размещения.
 
 ## Быстрый запуск для проверки
