@@ -183,6 +183,7 @@
     display: flex;
     gap: .5rem;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .lf-m .lf-success-actions {
