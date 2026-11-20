@@ -54,7 +54,7 @@ E-ITS применяется в контексте информационной 
 - Для output комментарии HTML-экранируются (`htmlspecialchars` с `ENT_QUOTES | ENT_SUBSTITUTE`), CSV-значения защищены от Formula Injection (автоматическое экранирование опасных лидирующих символов `=`, `+`, `-`, `@`, `\t`, `\r` префиксом `'`, протестировано в `tests/admin.test.mjs`).
 - Определение IP поддерживает доверенные reverse proxy (`trusted_proxies` в `config.php`).
 - Добавлены защитные файлы `.htaccess` и `public/.htaccess` для предотвращения доступа к скрытым директориям (`.git`, `.env`) и внутренним скриптам.
-- Реализован и проверен принцип наименьших привилегий для БД (least privilege): для пользователя приложения отозваны полные права (`REVOKE ALL PRIVILEGES`) и выданы только минимально необходимые: `GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON limis_feedback.* TO 'limis_feedback_app'@'localhost'`.
+- Реализован и проверен принцип наименьших привилегий для БД (least privilege): для пользователя приложения отозваны полные права (`REVOKE ALL PRIVILEGES`) и выданы только минимально необходимые: `GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON limis_feedback.* TO 'limis_feedback_admin'@'localhost'`.
 
 Эти меры — часть безопасной эксплуатации. Включение режима LIMIS для админки (`auth_mode = 'limis'`), доступность HTTPS, ротация секретов, мониторинг и восстановление базы зависят от окружения.
 
